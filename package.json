@@ -2,6 +2,7 @@
   "name": "aldimobilya",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@11.10.0",
   "scripts": {
     "dev": "pnpm --parallel --filter web --filter admin dev",
     "dev:web": "pnpm --filter web dev",
