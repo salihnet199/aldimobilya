@@ -58,13 +58,13 @@ export default async function OdalarPage() {
                   {!room.isVisible && <span className={styles.hiddenBadge}>Gizli</span>}
                 </div>
                 <div className={styles.cardBody}>
-                  <p className={styles.cardName}>{room.nameTr}</p>
+                  <p className={styles.cardName}>{room.nameEn || room.nameTr}</p>
                   {room.category && <span className={styles.cardCat}>{room.category}</span>}
                   <div className={styles.cardActions}>
                     <Link href={`/dashboard/odalar/${room.slug}/duzenle`} className="admin-btn admin-btn-ghost" style={{ fontSize: '0.8rem', padding: '5px 10px' }}>
-                      Düzenle
+                      Edit / تعديل
                     </Link>
-                    <DeleteRoomBtn slug={room.slug} name={room.nameTr} />
+                    <DeleteRoomBtn slug={room.slug} name={room.nameEn || room.nameTr} />
                   </div>
                 </div>
               </div>

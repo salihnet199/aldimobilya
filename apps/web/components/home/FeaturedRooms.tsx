@@ -1,24 +1,32 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { prisma } from '@aldimobilya/db';
 import styles from './FeaturedRooms.module.css';
 
-// This data will come from the DB/API once rooms are added via Admin Panel.
-// For now we show an empty/coming-soon state.
-const FEATURED_ROOMS: {
-  id: string;
-  slug: string;
-  nameTr: string;
-  category?: string;
-  heroImage: string;
-}[] = [];
+async function getFeaturedRooms() {
+  try {
+    const rooms = await prisma.room.findMany({
+      where: { isVisible: true, isFeatured: true },
+      take: 6,
+      orderBy: { createdAt: 'desc' },
+      include: { images: { orderBy: { order: 'asc' }, take: 1 } },
+    });
+    return rooms;
+  } catch (err) {
+    console.error('getFeaturedRooms error:', err);
+    return [];
+  }
+}
 
-export default function FeaturedRooms() {
+export default async function FeaturedRooms() {
+  const rooms = await getFeaturedRooms();
+
   return (
     <section className={`section ${styles.section}`} aria-labelledby="featured-heading">
       <div className="container">
         {/* Header */}
         <div className="section-header">
-          <span className="section-eyebrow">Öne Çıkan Tasarımlar</span>
+          <span className="section-eyebrow">Featured Designs / Öne Çıkan Tasarımlar</span>
           <h2 id="featured-heading" className="display-md">
             Seçkin Koleksiyonumuz
           </h2>
@@ -29,33 +37,39 @@ export default function FeaturedRooms() {
         </div>
 
         {/* Grid */}
-        {FEATURED_ROOMS.length > 0 ? (
+        {rooms.length > 0 ? (
           <div className={styles.grid}>
-            {FEATURED_ROOMS.map((room, i) => (
-              <Link
-                key={room.id}
-                href={`/katalog/${room.slug}`}
-                className={`room-card ${styles.card} ${i === 0 ? styles.cardLarge : ''}`}
-                aria-label={`${room.nameTr} — detayları görüntüle`}
-              >
-                <Image
-                  src={room.heroImage}
-                  alt={room.nameTr}
-                  fill
-                  priority={i < 2}
-                  unoptimized
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-                <div className="room-card-overlay">
-                  <div className="room-card-info">
-                    {room.category && (
-                      <p className="room-card-category">{room.category}</p>
-                    )}
-                    <p className="room-card-name">{room.nameTr}</p>
+            {rooms.map((room, i) => {
+              const displayName = room.nameEn || room.nameTr;
+              const displayImage = room.images[0]?.url || room.heroImage;
+
+              return (
+                <Link
+                  key={room.id}
+                  href={`/katalog/${room.slug}`}
+                  className={`room-card ${styles.card} ${i === 0 ? styles.cardLarge : ''}`}
+                  aria-label={`${displayName} — View Details`}
+                >
+                  <Image
+                    src={displayImage}
+                    alt={displayName}
+                    fill
+                    priority={i < 2}
+                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <div className="room-card-overlay">
+                    <div className="room-card-info">
+                      {room.category && (
+                        <p className="room-card-category">{room.category}</p>
+                      )}
+                      <p className="room-card-name">{displayName}</p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <div className={styles.comingSoon}>
