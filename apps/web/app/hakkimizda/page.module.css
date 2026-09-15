@@ -1,0 +1,67 @@
+/* hakkimizda/page.module.css */
+
+.pageHeader {
+  padding-block: clamp(48px, 8vw, 96px);
+  background: var(--black-soft);
+  border-bottom: 1px solid var(--border);
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: clamp(40px, 8vw, 100px);
+  align-items: center;
+}
+
+.storyText {
+  display: flex;
+  flex-direction: column;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.statsCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.statCard {
+  background: var(--black-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: border-color var(--transition-base), transform var(--transition-base);
+}
+
+.statCard:hover {
+  border-color: var(--border-gold);
+  transform: translateY(-4px);
+}
+
+.statNumber {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 0.95rem;
+  color: var(--gray-300);
+}
+
+@media (max-width: 900px) {
+  .storyGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+}

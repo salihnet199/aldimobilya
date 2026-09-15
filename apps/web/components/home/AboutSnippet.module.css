@@ -1,0 +1,76 @@
+/* AboutSnippet.module.css */
+
+.section {
+  background: var(--black-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 8vw, 120px);
+  align-items: center;
+}
+
+.textSide {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Values Side */
+.valuesSide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.valueItem {
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-start;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--black-card);
+  transition: border-color var(--transition-base), transform var(--transition-base);
+}
+
+.valueItem:hover {
+  border-color: var(--border-gold);
+  transform: translateX(4px);
+}
+
+.valueIcon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--gold-muted);
+  border: 1px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-12);
+  }
+}

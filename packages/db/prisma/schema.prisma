@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Room {
+  id         String      @id @default(cuid())
+  slug       String      @unique
+  nameTr     String
+  nameEn     String?
+  descTr     String?
+  descEn     String?
+  specs      Json?
+  isVisible  Boolean     @default(true)
+  isFeatured Boolean     @default(false)
+  heroImage  String
+  images     RoomImage[]
+  video      String?
+  category   String?
+  viewCount  Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("rooms")
+}
+
+model RoomImage {
+  id     String  @id @default(cuid())
+  url    String
+  alt    String?
+  order  Int     @default(0)
+  room   Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+
+  @@map("room_images")
+}
+
+model Video {
+  id        String   @id @default(cuid())
+  title     String
+  url       String
+  thumbnail String?
+  isPublic  Boolean  @default(true)
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("videos")
+}
+
+model SiteSettings {
+  id              String   @id @default("main")
+  whatsapp        String?
+  phone           String?
+  email           String?
+  address         String?
+  instagram       String?
+  facebook        String?
+  tiktok          String?
+  youtube         String?
+  heroImage       String?
+  heroVideo       String?
+  heroTitleTr     String?
+  heroSubtitleTr  String?
+  metaDescTr      String?
+  elfSightCode    String?  // ElfSight Instagram widget embed code
+  updatedAt       DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  name      String
+  role      Role     @default(EDITOR)
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}

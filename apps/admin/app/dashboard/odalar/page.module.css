@@ -1,0 +1,76 @@
+/* odalar/page.module.css */
+
+.page { display: flex; flex-direction: column; gap: 24px; }
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title { font-size: 1.75rem; font-weight: 700; color: var(--admin-text); }
+.subtitle { font-size: 0.875rem; color: var(--admin-text-muted); margin-top: 4px; }
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 0 14px;
+  max-width: 400px;
+  color: var(--admin-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 0.875rem;
+  color: var(--admin-text);
+}
+
+.searchInput::placeholder { color: var(--admin-text-faint); }
+
+.tableWrap {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.emptyRow td { text-align: center; }
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 64px 24px;
+  color: var(--admin-text-faint);
+}
+
+.emptyState p { font-size: 0.9375rem; color: var(--admin-text-muted); }
+
+.roomThumb {
+  width: 56px;
+  height: 42px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--admin-surface);
+}
+
+.roomName { font-weight: 500; color: var(--admin-text); }
+.roomSlug { font-size: 0.78rem; color: var(--admin-text-faint); margin-top: 2px; }
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -1,0 +1,69 @@
+/* InstagramSection.module.css */
+
+.section {
+  background: var(--black);
+}
+
+.handle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+  margin-bottom: var(--space-4);
+}
+
+.handle:hover {
+  color: var(--gold-light);
+}
+
+.widgetWrapper {
+  position: relative;
+  min-height: 360px;
+}
+
+/* Placeholder grid (shown while ElfSight is being configured) */
+.placeholder {
+  text-align: center;
+}
+
+.placeholderGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  max-width: 720px;
+  margin: 0 auto var(--space-8);
+}
+
+@media (min-width: 600px) {
+  .placeholderGrid {
+    grid-template-columns: repeat(9, 1fr);
+  }
+}
+
+.placeholderItem {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--black-card);
+  border: 1px solid var(--border);
+}
+
+.placeholderInner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+}
+
+.placeholderNote {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  font-style: italic;
+}

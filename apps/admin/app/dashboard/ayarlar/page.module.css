@@ -1,0 +1,58 @@
+/* ayarlar/page.module.css */
+
+.page { display: flex; flex-direction: column; gap: 24px; }
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title { font-size: 1.75rem; font-weight: 700; color: var(--admin-text); }
+.subtitle { font-size: 0.875rem; color: var(--admin-text-muted); margin-top: 4px; }
+
+.savedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.form { display: flex; flex-direction: column; gap: 24px; }
+
+.sectionLabel {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.fields { display: flex; flex-direction: column; gap: 16px; }
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--admin-text-faint);
+  margin-top: 4px;
+}
+
+.link {
+  color: var(--admin-gold);
+  text-decoration: none;
+}
+.link:hover { text-decoration: underline; }
+
+.saveRow {
+  display: flex;
+  justify-content: flex-start;
+  padding-bottom: 32px;
+}
