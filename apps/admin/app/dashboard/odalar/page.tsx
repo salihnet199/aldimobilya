@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { prisma, type Room, type RoomImage } from '@aldimobilya/db';
 import styles from './page.module.css';
-import DeleteRoomBtn from './DeleteRoomBtn';
+import DeleteRoomBtn from '@/components/DeleteRoomBtn';
 
 type RoomWithCover = Room & { images: RoomImage[] };
 
