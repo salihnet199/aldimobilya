@@ -6,53 +6,121 @@ import Link from 'next/link';
 import Image from 'next/image';
 import styles from './page.module.css';
 
-interface UploadedImage { url: string; publicId: string }
+interface UploadedImage {
+  url: string;
+  publicId: string;
+}
 
 function slugify(text: string) {
   return text
     .toLowerCase()
     .trim()
-    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
-    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+async function uploadFileDirect(file: File, folder = 'aldimobilya/rooms'): Promise<{ url: string; publicId: string }> {
+  // 1. First attempt: Direct client upload to Cloudinary (bypasses Vercel 4.5MB limit, supports large images & videos)
+  try {
+    const signRes = await fetch(`/api/upload/sign?folder=${encodeURIComponent(folder)}`);
+    if (signRes.ok) {
+      const { signature, timestamp, apiKey, cloudName } = await signRes.json();
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('api_key', apiKey);
+      fd.append('timestamp', String(timestamp));
+      fd.append('signature', signature);
+      fd.append('folder', folder);
+
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+        method: 'POST',
+        body: fd,
+      });
+      const cloudData = await cloudRes.json();
+      if (cloudRes.ok && cloudData.secure_url) {
+        return {
+          url: cloudData.secure_url,
+          publicId: cloudData.public_id || '',
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Direct upload attempt failed, falling back to server route:', err);
+  }
+
+  // 2. Fallback: Internal Next.js API route
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('folder', folder);
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    body: fd,
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || `${file.name} yüklenemedi. (Hata kodu: ${res.status})`);
+  }
+
+  return {
+    url: data.url,
+    publicId: data.publicId || '',
+  };
 }
 
 export default function YeniOdaPage() {
   const router = useRouter();
 
-  const [nameEn, setNameEn]       = useState('');
+  // Model Bilgileri (Türkçe)
   const [nameTr, setNameTr]       = useState('');
   const [slug, setSlug]           = useState('');
-  const [descEn, setDescEn]       = useState('');
+  const [descTr, setDescTr]       = useState('');
   const [category, setCategory]   = useState('');
   const [video, setVideo]         = useState('');
   const [isVisible, setIsVisible] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
-  const [specs, setSpecs]         = useState({ material: '', dimensions: '', style: '', warranty: '', colors: '' });
+  const [specs, setSpecs]         = useState({
+    material: '',
+    dimensions: '',
+    style: '',
+    warranty: '',
+    colors: '',
+  });
 
-  const [images, setImages]       = useState<UploadedImage[]>([]);
-  const [uploading, setUploading] = useState(false);
+  // Medya durumları
+  const [images, setImages]           = useState<UploadedImage[]>([]);
+  const [uploading, setUploading]     = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
-  const [saving, setSaving]       = useState(false);
-  const [error, setError]         = useState('');
-  const [success, setSuccess]     = useState('');
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress]   = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState('');
+  const [success, setSuccess]         = useState('');
 
-  const fileRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-slug from English name
-  function handleNameEn(v: string) {
-    setNameEn(v);
-    if (!slug || slug === slugify(nameEn)) {
+  // Model adından otomatik Türkçe SEO slug oluşturma
+  function handleNameChange(v: string) {
+    setNameTr(v);
+    if (!slug || slug === slugify(nameTr)) {
       setSlug(slugify(v));
     }
   }
 
+  // Toplu Fotoğraf Yükleme
   async function handleImageUpload(files: FileList | null) {
     if (!files?.length) return;
     setUploading(true);
     setError('');
-    setUploadProgress(`0 / ${files.length}`);
+    setSuccess('');
 
     try {
       const uploaded: UploadedImage[] = [];
@@ -60,38 +128,59 @@ export default function YeniOdaPage() {
 
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
-        setUploadProgress(`${i + 1} / ${fileList.length}: ${file.name}`);
+        setUploadProgress(`Yükleniyor: ${i + 1} / ${fileList.length} (${file.name})`);
 
-        const fd = new FormData();
-        fd.append('file', file);
-        fd.append('folder', 'aldimobilya/rooms');
-
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: fd,
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || `Upload failed for ${file.name} (Status: ${res.status})`);
-        }
-
-        uploaded.push({
-          url: data.url,
-          publicId: data.publicId,
-        });
+        const result = await uploadFileDirect(file, 'aldimobilya/rooms');
+        uploaded.push(result);
       }
 
       setImages((prev) => [...prev, ...uploaded]);
-      setSuccess(`Uploaded ${uploaded.length} image(s) successfully.`);
+      setSuccess(`${uploaded.length} adet görsel başarıyla yüklendi.`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error uploading images. Please check Cloudinary credentials.';
+      const msg = err instanceof Error ? err.message : 'Görseller yüklenirken bir hata oluştu.';
       setError(msg);
     } finally {
       setUploading(false);
       setUploadProgress('');
-      if (fileRef.current) fileRef.current.value = '';
+      if (imageInputRef.current) imageInputRef.current.value = '';
     }
+  }
+
+  // Video Dosyası Yükleme
+  async function handleVideoUpload(files: FileList | null) {
+    if (!files?.length) return;
+    const file = files[0];
+    setUploadingVideo(true);
+    setError('');
+    setSuccess('');
+    setVideoProgress(`Video yükleniyor: ${file.name}...`);
+
+    try {
+      const result = await uploadFileDirect(file, 'aldimobilya/videos');
+      setVideo(result.url);
+      setSuccess('Video başarıyla yüklendi!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Video yüklenirken bir hata oluştu.';
+      setError(msg);
+    } finally {
+      setUploadingVideo(false);
+      setVideoProgress('');
+      if (videoInputRef.current) videoInputRef.current.value = '';
+    }
+  }
+
+  function removeImage(idx: number) {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function setAsHero(idx: number) {
+    if (idx === 0) return;
+    setImages((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(idx, 1);
+      next.unshift(item);
+      return next;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -99,20 +188,20 @@ export default function YeniOdaPage() {
     setError('');
     setSuccess('');
 
-    const primaryName = nameEn.trim() || nameTr.trim();
-    if (!primaryName) {
-      setError('Model Name (English) is required.');
+    const trimmedName = nameTr.trim();
+    if (!trimmedName) {
+      setError('Lütfen model adını giriniz.');
       return;
     }
 
-    const finalSlug = slug.trim() || slugify(primaryName);
+    const finalSlug = slug.trim() || slugify(trimmedName);
     if (!finalSlug) {
-      setError('URL slug is required.');
+      setError('Lütfen URL bağlantısını (slug) belirleyiniz.');
       return;
     }
 
     if (!images.length) {
-      setError('Please upload at least one image.');
+      setError('Lütfen modele ait en az bir görsel yükleyiniz.');
       return;
     }
 
@@ -122,14 +211,14 @@ export default function YeniOdaPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nameEn: primaryName,
-          nameTr: nameTr.trim() || primaryName,
+          nameTr: trimmedName,
+          nameEn: trimmedName, // DB uyumluluğu için Türkçe isim kopyalanır
           slug: finalSlug,
-          descEn: descEn.trim() || null,
-          descTr: descEn.trim() || null,
+          descTr: descTr.trim() || null,
+          descEn: descTr.trim() || null,
           category: category.trim() || null,
           heroImage: images[0].url,
-          images: images.map((img) => ({ url: img.url, alt: primaryName })),
+          images: images.map((img) => ({ url: img.url, alt: trimmedName })),
           video: video.trim() || null,
           isVisible,
           isFeatured,
@@ -139,15 +228,15 @@ export default function YeniOdaPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? 'Error saving room.');
+        setError(data.error ?? 'Model kaydedilirken hata oluştu.');
         return;
       }
 
-      setSuccess('Room published successfully!');
+      setSuccess('Model başarıyla eklendi!');
       router.push('/dashboard/odalar');
       router.refresh();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Connection error. Please try again.';
+      const msg = err instanceof Error ? err.message : 'Bağlantı hatası oluştu. Tekrar deneyiniz.';
       setError(msg);
     } finally {
       setSaving(false);
@@ -158,14 +247,16 @@ export default function YeniOdaPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <Link href="/dashboard/odalar" className={styles.backLink}>
-          ← Back to Rooms / العودة للقائمة
+          ← Odalar Listesine Dön
         </Link>
-        <h1 className={styles.title}>Add New Room / إضافة غرفة جديدة</h1>
+        <h1 className={styles.title}>Yeni Oda Modeli Ekle</h1>
       </div>
 
       {error && (
         <div className={styles.errorBanner}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
           {error}
         </div>
       )}
@@ -178,233 +269,285 @@ export default function YeniOdaPage() {
 
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
-          {/* ── Left Column ── */}
+          {/* ── Sol Kolon (Temel Bilgiler) ── */}
           <div className={styles.mainCol}>
-            {/* Basic Info */}
+            {/* Model Bilgileri */}
             <div className="admin-card">
-              <h2 className={styles.sectionLabel}>Model Information / معلومات الموديل</h2>
+              <h2 className={styles.sectionLabel}>Model Bilgileri</h2>
               <div className={styles.fields}>
                 <div className="field-group">
-                  <label className="admin-label">Model Name (English) / اسم الموديل بالإنجليزية *</label>
+                  <label className="admin-label">Model Adı *</label>
                   <input
                     className="admin-input"
-                    value={nameEn}
-                    onChange={(e) => handleNameEn(e.target.value)}
-                    placeholder="e.g. Royal Luxury Bedroom"
+                    value={nameTr}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="ör. Hürrem Sultan Yatak Odası"
                     required
                   />
                 </div>
 
                 <div className="field-group">
-                  <label className="admin-label">URL Slug (Page Link) / رابط الصفحة *</label>
+                  <label className="admin-label">Sayfa Bağlantısı (Slug) *</label>
                   <input
                     className="admin-input"
                     value={slug}
                     onChange={(e) => setSlug(slugify(e.target.value))}
-                    placeholder="e.g. royal-luxury-bedroom"
+                    placeholder="ör. hurrem-sultan-yatak-odasi"
                     required
                   />
                   <span className={styles.hint}>
-                    Auto-generated from English name • Link: /katalog/<strong>{slug || '...'}</strong>
+                    Model adından otomatik üretilir • Sitedeki adres: /katalog/<strong>{slug || '...'}</strong>
                   </span>
                 </div>
 
                 <div className="field-group">
-                  <label className="admin-label">Category / الفئة</label>
+                  <label className="admin-label">Kategori</label>
                   <input
                     className="admin-input"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    placeholder="e.g. Classic, Modern, Royal, Luxury"
+                    placeholder="ör. Klasik Yatak Odası, Modern, Avangard, Lüks"
                   />
                 </div>
 
                 <div className="field-group">
-                  <label className="admin-label">Description / الوصف</label>
+                  <label className="admin-label">Model Açıklaması</label>
                   <textarea
-                    className="admin-input admin-textarea"
-                    value={descEn}
-                    onChange={(e) => setDescEn(e.target.value)}
-                    placeholder="Describe this room model..."
+                    className="admin-textarea"
                     rows={4}
-                  />
-                </div>
-
-                <div className="field-group">
-                  <label className="admin-label" style={{ opacity: 0.7 }}>Alternative Name (Turkish / Optional)</label>
-                  <input
-                    className="admin-input"
-                    value={nameTr}
-                    onChange={(e) => setNameTr(e.target.value)}
-                    placeholder="Optional - will use English name if left empty"
+                    value={descTr}
+                    onChange={(e) => setDescTr(e.target.value)}
+                    placeholder="Koleksiyon hakkında detaylı bilgi, kumaş ve ahşap detayları..."
                   />
                 </div>
               </div>
             </div>
 
-            {/* Images Upload */}
+            {/* Görseller */}
             <div className="admin-card">
-              <h2 className={styles.sectionLabel}>Room Images / صور الغرفة *</h2>
+              <h2 className={styles.sectionLabel}>Model Görselleri *</h2>
+              <p className={styles.subtext}>
+                İlk görsel otomatik olarak ana kapak görseli yapılır. Sürükleyip bırakabilir veya dosya seçebilirsiniz.
+              </p>
+
+              {/* Görsel Yükleme Alanı */}
+              <div
+                className={styles.uploadDropzone}
+                onClick={() => imageInputRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleImageUpload(e.dataTransfer.files);
+                }}
+              >
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => handleImageUpload(e.target.files)}
+                />
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <div style={{ marginTop: 10, fontWeight: 600, color: '#f1f5f9' }}>
+                  {uploading ? uploadProgress : 'Görselleri seçmek için tıklayın veya buraya sürükleyin'}
+                </div>
+                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+                  JPG, PNG, WebP formatları desteklenir • Çoklu seçim yapabilirsiniz
+                </div>
+              </div>
+
+              {/* Yüklenen Fotoğrafların Önizleme Listesi */}
               {images.length > 0 && (
-                <div className={styles.thumbGrid}>
-                  {images.map((img, i) => (
-                    <div key={img.publicId} className={styles.thumb}>
-                      <Image src={img.url} alt="" fill style={{ objectFit: 'cover' }} sizes="120px" unoptimized />
-                      {i === 0 && <span className={styles.coverBadge}>Main Cover / الغلاف</span>}
-                      <button
-                        type="button"
-                        className={styles.removeImg}
-                        onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
-                        title="Remove image"
-                      >×</button>
+                <div className={styles.imageList}>
+                  {images.map((img, idx) => (
+                    <div key={idx} className={`${styles.imageCard} ${idx === 0 ? styles.heroCard : ''}`}>
+                      <div className={styles.thumbWrapper}>
+                        <Image
+                          src={img.url}
+                          alt={`Görsel ${idx + 1}`}
+                          fill
+                          sizes="160px"
+                          style={{ objectFit: 'cover' }}
+                        />
+                        {idx === 0 && <span className={styles.heroBadge}>Kapak</span>}
+                      </div>
+                      <div className={styles.imageActions}>
+                        {idx !== 0 && (
+                          <button
+                            type="button"
+                            className={styles.heroBtn}
+                            onClick={() => setAsHero(idx)}
+                            title="Kapak Görseli Yap"
+                          >
+                            ★ Kapak Yap
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.deleteImgBtn}
+                          onClick={() => removeImage(idx)}
+                          title="Sil"
+                        >
+                          ✕ Sil
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
-
-              <div
-                className={`${styles.uploadZone} ${uploading ? styles.uploading : ''}`}
-                onClick={() => !uploading && fileRef.current?.click()}
-                style={{ cursor: uploading ? 'wait' : 'pointer' }}
-              >
-                {uploading ? (
-                  <>
-                    <div className={styles.spinner} />
-                    <span>Uploading images to Cloudinary… ({uploadProgress})</span>
-                  </>
-                ) : (
-                  <>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    <span>Click to select images or drag & drop</span>
-                    <span className={styles.hint}>PNG, JPG, WebP — Any size supported</span>
-                  </>
-                )}
-                <input
-                  ref={fileRef}
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className={styles.fileInput}
-                  onChange={(e) => handleImageUpload(e.target.files)}
-                />
-              </div>
             </div>
 
-            {/* Video */}
+            {/* Video Alanı */}
             <div className="admin-card">
-              <h2 className={styles.sectionLabel}>Video URL / رابط فيديو (اختياري)</h2>
-              <div className="field-group">
-                <label className="admin-label">Video Link (YouTube, Vimeo, Cloudinary, mp4)</label>
-                <input
-                  className="admin-input"
-                  type="url"
-                  value={video}
-                  onChange={(e) => setVideo(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
+              <h2 className={styles.sectionLabel}>Model Videosu (Opsiyonel)</h2>
+              <p className={styles.subtext}>
+                Modele ait video yükleyebilir veya YouTube / Cloudinary / MP4 linki ekleyebilirsiniz.
+              </p>
 
-            {/* Specifications */}
-            <div className="admin-card">
-              <h2 className={styles.sectionLabel}>Specifications / المواصفات (Optional)</h2>
-              <div className={`${styles.fields} form-grid-2`}>
-                {[
-                  { key: 'material', label: 'Material / نوع الخشب والمواد', placeholder: 'e.g. Solid Oak, Velvet' },
-                  { key: 'dimensions', label: 'Dimensions / المقاسات', placeholder: 'e.g. 200x200 cm' },
-                  { key: 'style', label: 'Style / النمط', placeholder: 'e.g. Modern Luxury' },
-                  { key: 'warranty', label: 'Warranty / الضمان', placeholder: 'e.g. 5 Years' },
-                ].map(({ key, label, placeholder }) => (
-                  <div key={key} className="field-group">
-                    <label className="admin-label">{label}</label>
+              <div className={styles.fields}>
+                <div className="field-group">
+                  <label className="admin-label">Video Dosyası Yükle</label>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className="admin-btn"
+                      style={{ background: '#334155', color: '#fff', padding: '9px 16px', borderRadius: 8, cursor: 'pointer' }}
+                      onClick={() => videoInputRef.current?.click()}
+                      disabled={uploadingVideo}
+                    >
+                      {uploadingVideo ? 'Video Yükleniyor...' : '📹 Video Dosyası Seç'}
+                    </button>
                     <input
-                      className="admin-input"
-                      value={specs[key as keyof typeof specs]}
-                      onChange={(e) => setSpecs((s) => ({ ...s, [key]: e.target.value }))}
-                      placeholder={placeholder}
+                      ref={videoInputRef}
+                      type="file"
+                      accept="video/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleVideoUpload(e.target.files)}
                     />
+                    {videoProgress && <span style={{ fontSize: 13, color: '#c5a880' }}>{videoProgress}</span>}
                   </div>
-                ))}
-                <div className="field-group" style={{ gridColumn: '1 / -1' }}>
-                  <label className="admin-label">Colors / خيارات الألوان</label>
+                </div>
+
+                <div className="field-group">
+                  <label className="admin-label">Veya Video Bağlantısı (URL)</label>
+                  <input
+                    className="admin-input"
+                    value={video}
+                    onChange={(e) => setVideo(e.target.value)}
+                    placeholder="https://... (ör. Cloudinary video linki veya YouTube)"
+                  />
+                </div>
+
+                {video && (
+                  <div style={{ marginTop: 10, padding: 12, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <span style={{ fontSize: 12, color: '#4ade80', display: 'block', marginBottom: 6 }}>✓ Tanımlı Video:</span>
+                    <a href={video} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: '#c5a880', wordBreak: 'break-all' }}>
+                      {video}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Teknik Özellikler */}
+            <div className="admin-card">
+              <h2 className={styles.sectionLabel}>Teknik Özellikler</h2>
+              <div className={styles.fields}>
+                <div className="field-group">
+                  <label className="admin-label">Malzeme</label>
+                  <input
+                    className="admin-input"
+                    value={specs.material}
+                    onChange={(e) => setSpecs((s) => ({ ...s, material: e.target.value }))}
+                    placeholder="ör. Doğal Masif Meşe, Lake Cila, Paslanmaz Gold Metal"
+                  />
+                </div>
+                <div className="field-group">
+                  <label className="admin-label">Ölçüler / Boyutlar</label>
+                  <input
+                    className="admin-input"
+                    value={specs.dimensions}
+                    onChange={(e) => setSpecs((s) => ({ ...s, dimensions: e.target.value }))}
+                    placeholder="ör. Yatak: 180x200cm | Dolap: 260x220x65cm"
+                  />
+                </div>
+                <div className="field-group">
+                  <label className="admin-label">Tasarım Stili</label>
+                  <input
+                    className="admin-input"
+                    value={specs.style}
+                    onChange={(e) => setSpecs((s) => ({ ...s, style: e.target.value }))}
+                    placeholder="ör. Modern Lüks, Klasik Neoklasik"
+                  />
+                </div>
+                <div className="field-group">
+                  <label className="admin-label">Renk Seçenekleri</label>
                   <input
                     className="admin-input"
                     value={specs.colors}
                     onChange={(e) => setSpecs((s) => ({ ...s, colors: e.target.value }))}
-                    placeholder="e.g. White & Gold, Anthracite, Walnut"
+                    placeholder="ör. Krem, Antrasit, Ceviz, Özel Renk Seçenekleri"
+                  />
+                </div>
+                <div className="field-group">
+                  <label className="admin-label">Garanti Süresi</label>
+                  <input
+                    className="admin-input"
+                    value={specs.warranty}
+                    onChange={(e) => setSpecs((s) => ({ ...s, warranty: e.target.value }))}
+                    placeholder="ör. 2 Yıl Üretici Garantisi"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ── Right Column ── */}
+          {/* ── Sağ Kolon (Yayınlama ve Durum) ── */}
           <div className={styles.sideCol}>
             <div className="admin-card">
-              <h2 className={styles.sectionLabel}>Publish Settings / إعدادات النشر</h2>
-              <div className={styles.toggleRow}>
-                <div>
-                  <p className={styles.toggleTitle}>Published / معروض</p>
-                  <p className={styles.toggleDesc}>Visible on website / يظهر في الموقع</p>
-                </div>
-                <label className="toggle">
+              <h2 className={styles.sectionLabel}>Yayınlama Durumu</h2>
+              <div className={styles.fields}>
+                <label className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={isVisible}
                     onChange={(e) => setIsVisible(e.target.checked)}
                   />
-                  <span className="toggle-track" />
+                  <span>Sitede Yayınla (Aktif)</span>
                 </label>
-              </div>
 
-              <div className={`${styles.toggleRow} ${styles.toggleRowBorder}`}>
-                <div>
-                  <p className={styles.toggleTitle}>Featured / مميز</p>
-                  <p className={styles.toggleDesc}>Show on homepage / يظهر في الرئيسية</p>
-                </div>
-                <label className="toggle">
+                <label className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={isFeatured}
                     onChange={(e) => setIsFeatured(e.target.checked)}
                   />
-                  <span className="toggle-track" />
+                  <span>Ana Sayfada Öne Çıkar</span>
                 </label>
+
+                <div className={styles.formActions}>
+                  <button
+                    type="submit"
+                    className="admin-btn admin-btn-primary"
+                    style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
+                    disabled={saving || uploading || uploadingVideo}
+                  >
+                    {saving ? 'Kaydediliyor...' : 'Modeli Kaydet ve Yayınla'}
+                  </button>
+                  <Link
+                    href="/dashboard/odalar"
+                    className="admin-btn admin-btn-secondary"
+                    style={{ width: '100%', justifyContent: 'center', textAlign: 'center' }}
+                  >
+                    İptal
+                  </Link>
+                </div>
               </div>
-            </div>
-
-            <div className={styles.submitArea}>
-              <button
-                type="submit"
-                disabled={saving || uploading}
-                className="admin-btn admin-btn-primary"
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                {saving ? (
-                  <>
-                    <div className={styles.spinnerSm} /> Saving to Database…
-                  </>
-                ) : (
-                  <>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                      <polyline points="17 21 17 13 7 13 7 21"/>
-                      <polyline points="7 3 7 8 15 8"/>
-                    </svg>
-                    Save & Publish / حفظ ونشر
-                  </>
-                )}
-              </button>
-
-              <Link
-                href="/dashboard/odalar"
-                className="admin-btn admin-btn-ghost"
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                Cancel / إلغاء
-              </Link>
             </div>
           </div>
         </div>
