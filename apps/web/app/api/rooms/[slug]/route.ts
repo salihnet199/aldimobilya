@@ -1,20 +1,37 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@aldimobilya/db';
 
-interface Context { params: Promise<{ slug: string }> }
+const READ_ONLY_ALLOW = 'GET, HEAD, OPTIONS';
+
+interface Context {
+  params: Promise<{ slug: string }>;
+}
+
+function methodNotAllowed(): NextResponse {
+  return NextResponse.json(
+    { error: 'Bu uç nokta yalnızca okuma amaçlıdır.' },
+    { status: 405, headers: { Allow: READ_ONLY_ALLOW } },
+  );
+}
 
 export async function GET(_req: Request, { params }: Context) {
   const { slug } = await params;
+
   try {
-    const room = await prisma.room.findUnique({
-      where: { slug },
+    // Filter on `isVisible` in the query itself so a hidden room is
+    // indistinguishable from a missing one (no existence leak).
+    const room = await prisma.room.findFirst({
+      where: { slug, isVisible: true },
       include: { images: { orderBy: { order: 'asc' } } },
     });
-    if (!room) return NextResponse.json({ error: 'Bulunamadı' }, { status: 404 });
 
-    // Increment view count (fire-and-forget)
-    void prisma.room.update({ where: { slug }, data: { viewCount: { increment: 1 } } });
+    if (!room) {
+      return NextResponse.json({ error: 'Bulunamadı' }, { status: 404 });
+    }
 
+    // No `viewCount` increment here: a public GET must not perform a write, as
+    // that turned every anonymous read into unauthenticated database write
+    // amplification. The stored `viewCount` value is left untouched.
     return NextResponse.json({ room });
   } catch (err) {
     console.error(`[GET /api/rooms/${slug}]`, err);
@@ -22,44 +39,25 @@ export async function GET(_req: Request, { params }: Context) {
   }
 }
 
-export async function PUT(request: Request, { params }: Context) {
-  const { slug } = await params;
-  try {
-    const body = await request.json();
-    const { images, ...data } = body;
-
-    const room = await prisma.room.update({
-      where: { slug },
-      data: {
-        ...data,
-        ...(images
-          ? {
-              images: {
-                deleteMany: {},
-                create: (images as { url: string; alt?: string }[]).map(
-                  (img, i) => ({ url: img.url, alt: img.alt || data.nameTr, order: i }),
-                ),
-              },
-            }
-          : {}),
-      },
-      include: { images: true },
-    });
-
-    return NextResponse.json({ room });
-  } catch (err) {
-    console.error(`[PUT /api/rooms/${slug}]`, err);
-    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
-  }
+export async function POST() {
+  return methodNotAllowed();
 }
 
-export async function DELETE(_req: Request, { params }: Context) {
-  const { slug } = await params;
-  try {
-    await prisma.room.delete({ where: { slug } });
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error(`[DELETE /api/rooms/${slug}]`, err);
-    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
-  }
+export async function PUT() {
+  return methodNotAllowed();
+}
+
+export async function PATCH() {
+  return methodNotAllowed();
+}
+
+export async function DELETE() {
+  return methodNotAllowed();
+}
+
+export function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: { Allow: READ_ONLY_ALLOW },
+  });
 }

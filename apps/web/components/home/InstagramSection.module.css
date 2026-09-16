@@ -1,7 +1,15 @@
-/* InstagramSection.module.css */
+/* InstagramSection.module.css — warm light, minimal premium */
 
 .section {
-  background: var(--black);
+  --ig-bg: #f7f5f0;
+  --ig-surface: #ffffff;
+  --ig-ink: #262923;
+  --ig-olive: #5d6754;
+  --ig-gold: #93703f;
+  --ig-line: rgba(38, 41, 35, 0.1);
+
+  background: var(--ig-bg);
+  color: var(--ig-ink);
 }
 
 .handle {
@@ -11,59 +19,34 @@
   font-size: 0.8125rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--ig-gold);
   font-weight: 500;
   transition: color var(--transition-fast);
   margin-bottom: var(--space-4);
 }
 
 .handle:hover {
-  color: var(--gold-light);
+  color: #7d5f34;
 }
 
-.widgetWrapper {
-  position: relative;
-  min-height: 360px;
-}
-
-/* Placeholder grid (shown while ElfSight is being configured) */
-.placeholder {
-  text-align: center;
-}
-
-.placeholderGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
+.ctaCard {
   max-width: 720px;
-  margin: 0 auto var(--space-8);
-}
-
-@media (min-width: 600px) {
-  .placeholderGrid {
-    grid-template-columns: repeat(9, 1fr);
-  }
-}
-
-.placeholderItem {
-  aspect-ratio: 1;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: var(--black-card);
-  border: 1px solid var(--border);
-}
-
-.placeholderInner {
-  width: 100%;
-  height: 100%;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 48px);
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-line);
+  border-radius: var(--radius-xl, 20px);
+  text-align: center;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  color: var(--gold);
+  gap: var(--space-6);
+  box-shadow: 0 18px 48px rgba(38, 41, 35, 0.05);
 }
 
-.placeholderNote {
-  font-size: 0.875rem;
-  color: var(--gray-500);
-  font-style: italic;
+.ctaText {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ig-olive);
+  max-width: 480px;
 }

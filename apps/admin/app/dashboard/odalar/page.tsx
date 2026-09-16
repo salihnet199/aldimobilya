@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { prisma, type Room, type RoomImage } from '@aldimobilya/db';
+import { auth } from '@/auth';
+import { can, normalizeRole } from '@/lib/roles';
+import { publicRoomHref } from '@/lib/public-site';
 import styles from './page.module.css';
 import DeleteRoomBtn from '@/components/DeleteRoomBtn';
 
@@ -11,10 +14,16 @@ export const metadata: Metadata = { title: 'Oda Modelleri' };
 export const dynamic = 'force-dynamic';
 
 export default async function OdalarPage() {
-  const rooms = await prisma.room.findMany({
-    orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
-    include: { images: { orderBy: { order: 'asc' }, take: 1 } },
-  });
+  const [rooms, session] = await Promise.all([
+    prisma.room.findMany({
+      orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+      include: { images: { orderBy: { order: 'asc' }, take: 1 } },
+    }),
+    auth(),
+  ]);
+
+  // UI hint only — the API re-checks `rooms:delete` against the live DB role.
+  const canDelete = can(normalizeRole(session?.user?.role), 'rooms:delete');
 
   return (
     <div className={styles.page}>
@@ -41,11 +50,20 @@ export default async function OdalarPage() {
         <div className={styles.grid}>
           {rooms.map((room: RoomWithCover) => {
             const cover = room.images[0]?.url ?? room.heroImage;
+            // Turkish name is the canonical display name; English is the fallback.
+            const displayName = room.nameTr || room.nameEn || room.slug;
             return (
               <div key={room.id} className={styles.card}>
                 <div className={styles.cardImg}>
                   {cover ? (
-                    <Image src={cover} alt={room.nameTr} fill sizes="260px" style={{ objectFit: 'cover' }} />
+                    <Image
+                      src={cover}
+                      alt={displayName}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 260px"
+                      unoptimized
+                      style={{ objectFit: 'cover' }}
+                    />
                   ) : (
                     <div className={styles.noImg}>
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
@@ -58,13 +76,29 @@ export default async function OdalarPage() {
                   {!room.isVisible && <span className={styles.hiddenBadge}>Gizli</span>}
                 </div>
                 <div className={styles.cardBody}>
-                  <p className={styles.cardName}>{room.nameEn || room.nameTr}</p>
+                  <p className={styles.cardName}>{displayName}</p>
                   {room.category && <span className={styles.cardCat}>{room.category}</span>}
                   <div className={styles.cardActions}>
-                    <Link href={`/dashboard/odalar/${room.slug}/duzenle`} className="admin-btn admin-btn-ghost" style={{ fontSize: '0.8rem', padding: '5px 10px' }}>
-                      Edit / تعديل
+                    <Link href={`/dashboard/odalar/${room.slug}/duzenle`} className="admin-btn admin-btn-ghost" style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                      Düzenle / Edit
                     </Link>
-                    <DeleteRoomBtn slug={room.slug} name={room.nameEn || room.nameTr} />
+                    {room.isVisible ? (
+                      <a
+                        href={publicRoomHref(room.slug)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.viewLink}
+                      >
+                        Sitede Gör
+                      </a>
+                    ) : (
+                      <span className={styles.hiddenNote}>Yayında değil</span>
+                    )}
+                    {canDelete ? (
+                      <DeleteRoomBtn slug={room.slug} name={displayName} />
+                    ) : (
+                      <span className={styles.lockedNote}>Silme: yönetici yetkisi</span>
+                    )}
                   </div>
                 </div>
               </div>

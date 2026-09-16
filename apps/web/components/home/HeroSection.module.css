@@ -1,4 +1,4 @@
-/* HeroSection.module.css */
+/* HeroSection.module.css — light ivory / ink / bronze, photography first */
 
 .hero {
   position: relative;
@@ -15,32 +15,32 @@
   z-index: 0;
 }
 
-.video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* Shown when no hero images are configured: a quiet ivory wash instead of the
+   old dark gradient, so the ink headline stays legible. */
 .gradientFallback {
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse at 30% 40%, rgba(201, 168, 76, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 80%, rgba(201, 168, 76, 0.05) 0%, transparent 50%),
-    linear-gradient(135deg, #0d0d0d 0%, #080808 50%, #111008 100%);
+    radial-gradient(ellipse at 30% 40%, rgba(147, 112, 63, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(147, 112, 63, 0.06) 0%, transparent 50%),
+    linear-gradient(135deg, #ffffff 0%, var(--ivory) 50%, #f3efe6 100%);
 }
 
-/* Overlay */
+/* Overlay — only meaningful over photography. */
 .overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to right,
-    rgba(8, 8, 8, 0.85) 0%,
-    rgba(8, 8, 8, 0.5) 60%,
-    rgba(8, 8, 8, 0.2) 100%
+    rgba(20, 18, 14, 0.72) 0%,
+    rgba(20, 18, 14, 0.45) 60%,
+    rgba(20, 18, 14, 0.18) 100%
   );
   z-index: 1;
+}
+
+.heroPlain .overlay {
+  display: none;
 }
 
 /* Content */
@@ -64,7 +64,12 @@
 .eyebrow {
   display: inline-block;
   margin-bottom: var(--space-6);
+  color: var(--bronze-light);
   animation: fadeInUp 0.9s ease 0.1s both;
+}
+
+.heroPlain .eyebrow {
+  color: var(--bronze);
 }
 
 .headline {
@@ -75,23 +80,31 @@
 }
 
 .lineOne {
-  color: var(--white);
+  color: var(--on-media);
+}
+
+.heroPlain .lineOne {
+  color: var(--ink);
 }
 
 .lineTwo {
   font-style: italic;
   line-height: 1;
-  background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+  background: linear-gradient(135deg, var(--bronze-light), var(--bronze), var(--bronze-dark));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .sub {
-  color: var(--gray-400);
+  color: var(--on-media-muted);
   margin-bottom: var(--space-10);
   max-width: 480px;
   animation: fadeInUp 0.9s ease 0.3s both;
+}
+
+.heroPlain .sub {
+  color: var(--ink-soft);
 }
 
 .ctas {
@@ -115,7 +128,7 @@
 .scrollLine {
   width: 1px;
   height: 60px;
-  background: linear-gradient(to bottom, var(--gold), transparent);
+  background: linear-gradient(to bottom, var(--bronze-light), transparent);
   display: block;
   animation: scrollPulse 2s ease-in-out infinite;
 }
@@ -125,11 +138,16 @@
   50%       { opacity: 0.4; transform: scaleY(0.7); }
 }
 
-.scrollLabel {
+.scrollIndicator .scrollLabel {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   letter-spacing: 0.15em;
   font-size: 0.65rem;
+  color: var(--on-media-muted);
+}
+
+.heroPlain .scrollIndicator .scrollLabel {
+  color: var(--ink-muted);
 }
 
 /* Bottom Fade */
@@ -139,7 +157,7 @@
   left: 0;
   right: 0;
   height: 200px;
-  background: linear-gradient(to top, var(--black), transparent);
+  background: linear-gradient(to top, var(--ivory), transparent);
   z-index: 2;
   pointer-events: none;
 }
@@ -163,5 +181,20 @@
   .ctas .btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .textBlock,
+  .eyebrow,
+  .headline,
+  .sub,
+  .ctas,
+  .scrollIndicator {
+    animation: none;
+  }
+
+  .scrollLine {
+    animation: none;
   }
 }

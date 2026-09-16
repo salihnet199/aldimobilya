@@ -1,13 +1,30 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@aldimobilya/db';
 
+/**
+ * Public room catalogue — read-only.
+ *
+ * Mutations live exclusively in the authenticated admin app. The handlers below
+ * answer 405 with an explicit `Allow` header so a probing client learns the
+ * endpoint is read-only instead of hitting an unlabelled framework response.
+ */
+const READ_ONLY_ALLOW = 'GET, HEAD, OPTIONS';
+
+function methodNotAllowed(): NextResponse {
+  return NextResponse.json(
+    { error: 'Bu uç nokta yalnızca okuma amaçlıdır.' },
+    { status: 405, headers: { Allow: READ_ONLY_ALLOW } },
+  );
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('kategori') ?? undefined;
-  const search   = searchParams.get('ara') ?? undefined;
+  const search = searchParams.get('ara') ?? undefined;
   const featured = searchParams.get('featured') === 'true';
 
   try {
+    // `isVisible: true` is the hard gate: hidden rooms are never listed.
     const where = {
       isVisible: true,
       ...(featured ? { isFeatured: true } : {}),
@@ -42,55 +59,25 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
+export async function POST() {
+  return methodNotAllowed();
+}
 
-    const {
-      nameTr, nameEn, descTr, slug, category,
-      heroImage, images = [], video,
-      isVisible = true, isFeatured = false, specs,
-    } = body;
+export async function PUT() {
+  return methodNotAllowed();
+}
 
-    if (!nameTr || !slug || !heroImage) {
-      return NextResponse.json(
-        { error: 'nameTr, slug ve heroImage zorunludur' },
-        { status: 400 },
-      );
-    }
+export async function PATCH() {
+  return methodNotAllowed();
+}
 
-    const room = await prisma.room.create({
-      data: {
-        nameTr,
-        nameEn: nameEn || null,
-        descTr: descTr || null,
-        slug,
-        category: category || null,
-        heroImage,
-        video: video || null,
-        isVisible,
-        isFeatured,
-        specs: specs || undefined,
-        images: {
-          create: (images as { url: string; alt?: string }[]).map(
-            (img, i) => ({ url: img.url, alt: img.alt || nameTr, order: i }),
-          ),
-        },
-      },
-      include: { images: true },
-    });
+export async function DELETE() {
+  return methodNotAllowed();
+}
 
-    return NextResponse.json({ room }, { status: 201 });
-  } catch (err: unknown) {
-    if (
-      err &&
-      typeof err === 'object' &&
-      'code' in err &&
-      (err as { code: string }).code === 'P2002'
-    ) {
-      return NextResponse.json({ error: 'Bu slug zaten kullanımda' }, { status: 409 });
-    }
-    console.error('[POST /api/rooms]', err);
-    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
-  }
+export function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: { Allow: READ_ONLY_ALLOW },
+  });
 }

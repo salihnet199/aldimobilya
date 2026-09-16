@@ -1,41 +1,51 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@aldimobilya/db';
+import { readJsonBody, requireAdminSession } from '@/lib/auth-guard';
+import { validateVideoCreate } from '@/lib/validation';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const guard = await requireAdminSession({ capability: 'videos:read', request });
+  if (!guard.ok) return guard.response;
+
   try {
+    // Admin listing shows every video, including unpublished ones.
     const videos = await prisma.video.findMany({
       orderBy: { createdAt: 'desc' },
     });
     return NextResponse.json({ videos });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[GET /api/videos] Error:', msg);
-    return NextResponse.json({ error: 'Videolar getirilemedi: ' + msg }, { status: 500 });
+    console.error('[GET /api/videos in admin]', err);
+    return NextResponse.json({ error: 'Videolar getirilemedi.' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  const guard = await requireAdminSession({ capability: 'videos:write', request });
+  if (!guard.ok) return guard.response;
+
+  const parsed = await readJsonBody(request);
+  if (!parsed.ok) return parsed.response;
+
+  const validated = validateVideoCreate(parsed.body);
+  if (!validated.ok) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
+
+  const data = validated.value;
+
   try {
-    const body = await request.json();
-    const { title, url, thumbnail, isPublic } = body;
-
-    if (!title?.trim() || !url?.trim()) {
-      return NextResponse.json({ error: 'Başlık ve video URL zorunludur.' }, { status: 400 });
-    }
-
     const video = await prisma.video.create({
       data: {
-        title: title.trim(),
-        url: url.trim(),
-        thumbnail: thumbnail?.trim() || null,
-        isPublic: isPublic !== undefined ? Boolean(isPublic) : true,
+        title: data.title,
+        url: data.url,
+        thumbnail: data.thumbnail ?? null,
+        isPublic: data.isPublic,
       },
     });
 
     return NextResponse.json({ video }, { status: 201 });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[POST /api/videos] Error:', msg);
-    return NextResponse.json({ error: 'Video kaydedilemedi: ' + msg }, { status: 500 });
+    console.error('[POST /api/videos in admin]', err);
+    return NextResponse.json({ error: 'Video kaydedilemedi.' }, { status: 500 });
   }
 }

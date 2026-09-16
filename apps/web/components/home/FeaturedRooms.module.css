@@ -1,7 +1,7 @@
 /* FeaturedRooms.module.css */
 
 .section {
-  background: var(--black);
+  background: var(--ivory);
 }
 
 .grid {
@@ -33,24 +33,6 @@
   display: flex;
   justify-content: center;
   margin-top: var(--space-10);
-}
-
-/* Coming Soon */
-.comingSoon {
-  text-align: center;
-  padding: clamp(60px, 10vw, 120px) var(--space-8);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--black-card);
-  margin-bottom: var(--space-10);
-}
-
-.comingSoonIcon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--space-6);
-  color: var(--gold-dark);
-  opacity: 0.6;
 }
 
 /* Responsive */

@@ -13,6 +13,137 @@
 .title { font-size: 1.75rem; font-weight: 700; color: var(--admin-text); }
 .subtitle { font-size: 0.875rem; color: var(--admin-text-muted); margin-top: 4px; }
 
+/* Room cards */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.card:hover { border-color: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
+
+.cardImg {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--admin-surface);
+}
+
+.noImg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-faint);
+}
+
+.featuredBadge,
+.hiddenBadge {
+  position: absolute;
+  top: 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.featuredBadge {
+  left: 8px;
+  background: var(--admin-gold);
+  color: #000;
+}
+
+.hiddenBadge {
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+}
+
+.cardName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.cardCat {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--admin-border);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* "Sitede Gör" — opens the public catalogue in a new tab. */
+.viewLink {
+  font-size: 0.8rem;
+  color: var(--admin-gold);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  background: rgba(201, 168, 76, 0.08);
+  transition: background 0.15s;
+}
+
+.viewLink:hover {
+  background: rgba(201, 168, 76, 0.16);
+}
+
+/* Shown instead of a public link / delete action when it does not apply. */
+.hiddenNote,
+.lockedNote {
+  font-size: 0.72rem;
+  color: var(--admin-text-faint);
+  padding: 4px 2px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 64px 24px;
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.emptyTitle { font-size: 1rem; font-weight: 600; color: var(--admin-text); }
+.emptyDesc { font-size: 0.875rem; color: var(--admin-text-muted); }
+
 .searchBar {
   display: flex;
   align-items: center;
@@ -73,4 +204,23 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .title { font-size: 1.4rem; }
+
+  .header a {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+
+  .cardActions a,
+  .cardActions button {
+    flex: 1;
+    justify-content: center;
+    min-height: 40px;
+  }
 }

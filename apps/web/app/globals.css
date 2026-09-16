@@ -1,37 +1,68 @@
 /* =============================================================================
    ALDi Mobilya — Global Design System
-   Premium Luxury Furniture — Gold on Black
+   Premium minimal — ivory / ink / restrained bronze
+   Fonts are loaded through next/font in app/layout.tsx and exposed as
+   --font-cormorant / --font-inter. No @import here (that would double-load).
    ============================================================================= */
-
-/* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap');
 
 /* --- CSS Variables --- */
 :root {
-  /* Core Palette */
-  --black:          #080808;
-  --black-soft:     #101010;
-  --black-card:     #181818;
-  --black-hover:    #222222;
-  --border:         #2a2a2a;
-  --border-gold:    rgba(201, 168, 76, 0.3);
+  /* Surfaces & ink */
+  --ivory:          #f7f5f0;
+  --ivory-soft:     #f1eee6;
+  --surface:        #ffffff;
+  --surface-alt:    #efeae0;
 
-  --gold:           #C9A84C;
-  --gold-light:     #E8C97A;
-  --gold-dark:      #9A7A30;
-  --gold-muted:     rgba(201, 168, 76, 0.12);
-  --gold-glow:      rgba(201, 168, 76, 0.08);
+  --ink:            #262923;
+  --ink-soft:       #5d6754;
+  --ink-muted:      #8a8578;
+  --ink-faint:      #a8a294;
 
-  --white:          #FFFFFF;
-  --gray-100:       #F5F5F5;
-  --gray-200:       #E0E0E0;
-  --gray-400:       #9A9A9A;
-  --gray-500:       #707070;
-  --gray-600:       #505050;
+  --line:           rgba(38, 41, 35, 0.12);
+
+  /* Restrained bronze accent */
+  --bronze:         #93703f;
+  --bronze-light:   #b08a52;
+  --bronze-dark:    #7d5f34;
+  --bronze-muted:   rgba(147, 112, 63, 0.10);
+  --bronze-glow:    rgba(147, 112, 63, 0.08);
+  --line-bronze:    rgba(147, 112, 63, 0.28);
+
+  /* Text sitting directly on photography (never inverted globally) */
+  --on-media:        #ffffff;
+  --on-media-muted:  rgba(255, 255, 255, 0.72);
+
+  /* Sticky header height — keep in sync with components/layout/Header.module.css */
+  --header-h:       169px;
+
+  /* --- Legacy aliases ---------------------------------------------------
+     Older modules reference the original dark-theme names. They are kept as
+     aliases so those modules keep resolving, but now point at the light
+     palette. `.room-card-*` labels opt back into --on-media explicitly. */
+  --black:          var(--ivory);
+  --black-soft:     var(--ivory-soft);
+  --black-card:     var(--surface);
+  --black-hover:    var(--surface-alt);
+  --border:         var(--line);
+  --border-gold:    var(--line-bronze);
+
+  --gold:           var(--bronze);
+  --gold-light:     var(--bronze-light);
+  --gold-dark:      var(--bronze-dark);
+  --gold-muted:     var(--bronze-muted);
+  --gold-glow:      var(--bronze-glow);
+
+  --white:          var(--ink);
+  --gray-100:       #262923;
+  --gray-200:       #3a3d36;
+  --gray-300:       #6b6f66;
+  --gray-400:       var(--ink-soft);
+  --gray-500:       var(--ink-muted);
+  --gray-600:       var(--ink-faint);
 
   /* Typography */
-  --font-display:   'Cormorant Garamond', Georgia, serif;
-  --font-body:      'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display:   var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+  --font-body:      var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* Spacing Scale */
   --space-1:   4px;
@@ -56,9 +87,9 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-gold: 0 0 40px rgba(201, 168, 76, 0.15);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-card-hover: 0 8px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-gold);
+  --shadow-bronze: 0 0 40px rgba(147, 112, 63, 0.12);
+  --shadow-card: 0 6px 24px rgba(38, 41, 35, 0.06);
+  --shadow-card-hover: 0 14px 44px rgba(38, 41, 35, 0.12), 0 0 0 1px var(--line-bronze);
 
   /* Transitions */
   --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -85,13 +116,15 @@
 
 html {
   scroll-behavior: smooth;
+  /* Anchors and in-page jumps clear the sticky header. */
+  scroll-padding-top: var(--header-h);
   font-size: 16px;
 }
 
 body {
   font-family: var(--font-body);
-  background-color: var(--black);
-  color: var(--white);
+  background-color: var(--ivory);
+  color: var(--ink);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -113,6 +146,7 @@ button {
   border: none;
   background: none;
   font-family: inherit;
+  color: inherit;
 }
 
 ul, ol {
@@ -181,10 +215,10 @@ ul, ol {
 }
 
 /* --- Colors --- */
-.text-gold      { color: var(--gold); }
-.text-gold-light { color: var(--gold-light); }
-.text-muted     { color: var(--gray-400); }
-.text-white     { color: var(--white); }
+.text-gold      { color: var(--bronze); }
+.text-gold-light { color: var(--bronze-light); }
+.text-muted     { color: var(--ink-soft); }
+.text-white     { color: var(--ink); }
 
 /* --- Container --- */
 .container {
@@ -203,11 +237,11 @@ ul, ol {
   padding-block: clamp(40px, 6vw, 80px);
 }
 
-/* --- Gold Divider --- */
+/* --- Bronze Divider --- */
 .gold-line {
   width: 60px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  background: linear-gradient(90deg, transparent, var(--bronze), transparent);
   margin-block: var(--space-6);
 }
 
@@ -233,38 +267,38 @@ ul, ol {
 }
 
 .btn-gold {
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  color: var(--black);
+  background: linear-gradient(135deg, var(--bronze), var(--bronze-dark));
+  color: #fff;
   border: 1px solid transparent;
 }
 
 .btn-gold:hover {
-  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  background: linear-gradient(135deg, var(--bronze-light), var(--bronze));
   transform: translateY(-1px);
-  box-shadow: 0 8px 32px rgba(201, 168, 76, 0.3);
+  box-shadow: 0 8px 32px rgba(147, 112, 63, 0.28);
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--gold);
-  border: 1px solid var(--gold);
+  color: var(--bronze);
+  border: 1px solid var(--bronze);
 }
 
 .btn-outline:hover {
-  background: var(--gold-muted);
+  background: var(--bronze-muted);
   transform: translateY(-1px);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--gray-400);
-  border: 1px solid var(--border);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
 }
 
 .btn-ghost:hover {
-  color: var(--white);
-  border-color: var(--gray-500);
-  background: var(--black-card);
+  color: var(--ink);
+  border-color: var(--bronze-light);
+  background: var(--surface);
 }
 
 .btn-whatsapp {
@@ -284,15 +318,15 @@ ul, ol {
 
 /* --- Cards --- */
 .card {
-  background: var(--black-card);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all var(--transition-base);
 }
 
 .card:hover {
-  border-color: var(--border-gold);
+  border-color: var(--line-bronze);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-4px);
 }
@@ -304,8 +338,8 @@ ul, ol {
   overflow: hidden;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  background: var(--black-card);
-  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
 }
 
 .room-card img {
@@ -319,10 +353,12 @@ ul, ol {
   transform: scale(1.05);
 }
 
+/* Labels sit on top of photography, so they stay light regardless of the
+   page theme. The scrim keeps them readable. */
 .room-card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.85) 30%, transparent 70%);
+  background: linear-gradient(to top, rgba(20, 18, 14, 0.85) 30%, transparent 70%);
   opacity: 0;
   transition: opacity var(--transition-base);
   display: flex;
@@ -330,7 +366,8 @@ ul, ol {
   padding: var(--space-6);
 }
 
-.room-card:hover .room-card-overlay {
+.room-card:hover .room-card-overlay,
+.room-card:focus-visible .room-card-overlay {
   opacity: 1;
 }
 
@@ -339,7 +376,8 @@ ul, ol {
   transition: transform var(--transition-base);
 }
 
-.room-card:hover .room-card-info {
+.room-card:hover .room-card-info,
+.room-card:focus-visible .room-card-info {
   transform: translateY(0);
 }
 
@@ -347,7 +385,7 @@ ul, ol {
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 400;
-  color: var(--white);
+  color: var(--on-media);
   margin-bottom: var(--space-1);
 }
 
@@ -355,7 +393,19 @@ ul, ol {
   font-size: 0.75rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--bronze-light);
+}
+
+/* Touch devices never hover — keep the label permanently visible. */
+@media (hover: none), (max-width: 768px) {
+  .room-card-overlay {
+    opacity: 1;
+    background: linear-gradient(to top, rgba(20, 18, 14, 0.78) 0%, transparent 55%);
+  }
+
+  .room-card-info {
+    transform: none;
+  }
 }
 
 /* --- Grid Layouts --- */
@@ -400,14 +450,14 @@ ul, ol {
   font-size: 0.75rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--bronze);
   margin-bottom: var(--space-4);
   display: block;
 }
 
 /* --- Skeleton Loading --- */
 .skeleton {
-  background: linear-gradient(90deg, var(--black-card) 25%, var(--black-hover) 50%, var(--black-card) 75%);
+  background: linear-gradient(90deg, var(--surface-alt) 25%, #e6dfd3 50%, var(--surface-alt) 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s infinite;
   border-radius: var(--radius-md);
@@ -424,27 +474,27 @@ ul, ol {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--black-soft);
+  background: var(--ivory-soft);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: #d8d2c6;
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gold-dark);
+  background: var(--bronze-light);
 }
 
 /* --- Selection --- */
 ::selection {
-  background: var(--gold-muted);
-  color: var(--gold-light);
+  background: var(--bronze-muted);
+  color: var(--bronze-dark);
 }
 
 /* --- Focus --- */
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--bronze);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -477,8 +527,8 @@ ul, ol {
 }
 
 @keyframes goldPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.3); }
-  50%       { box-shadow: 0 0 0 12px rgba(201, 168, 76, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(147, 112, 63, 0.3); }
+  50%       { box-shadow: 0 0 0 12px rgba(147, 112, 63, 0); }
 }
 
 .animate-fade-up    { animation: fadeInUp 0.6s ease forwards; }
@@ -489,7 +539,7 @@ ul, ol {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(20, 18, 14, 0.72);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: var(--z-overlay);
@@ -508,19 +558,19 @@ ul, ol {
 }
 
 .badge-gold {
-  background: var(--gold-muted);
-  color: var(--gold-light);
-  border: 1px solid var(--border-gold);
+  background: var(--bronze-muted);
+  color: var(--bronze-dark);
+  border: 1px solid var(--line-bronze);
 }
 
 /* --- Input --- */
 .input {
   width: 100%;
   padding: 12px 16px;
-  background: var(--black-card);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  color: var(--white);
+  color: var(--ink);
   font-family: var(--font-body);
   font-size: 0.9375rem;
   transition: border-color var(--transition-fast);
@@ -528,11 +578,11 @@ ul, ol {
 }
 
 .input::placeholder {
-  color: var(--gray-500);
+  color: var(--ink-muted);
 }
 
 .input:focus {
-  border-color: var(--gold);
+  border-color: var(--bronze);
 }
 
 /* --- Search Bar --- */
@@ -549,7 +599,7 @@ ul, ol {
 .search-icon {
   position: absolute;
   left: 14px;
-  color: var(--gray-500);
+  color: var(--ink-muted);
   pointer-events: none;
 }
 
@@ -562,8 +612,8 @@ ul, ol {
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid var(--border);
-  color: var(--gray-400);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
   background: transparent;
   transition: all var(--transition-fast);
   letter-spacing: 0.04em;
@@ -571,20 +621,20 @@ ul, ol {
 }
 
 .chip:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--bronze);
+  color: var(--bronze);
 }
 
 .chip.active {
-  background: var(--gold-muted);
-  border-color: var(--gold);
-  color: var(--gold-light);
+  background: var(--bronze-muted);
+  border-color: var(--bronze);
+  color: var(--bronze-dark);
 }
 
 /* --- Divider --- */
 .divider {
   height: 1px;
-  background: var(--border);
+  background: var(--line);
   margin-block: var(--space-8);
 }
 
@@ -592,7 +642,7 @@ ul, ol {
 .empty-state {
   text-align: center;
   padding: var(--space-24) var(--space-8);
-  color: var(--gray-400);
+  color: var(--ink-soft);
 }
 
 .empty-state-icon {
@@ -627,4 +677,24 @@ ul, ol {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
   pointer-events: none;
   opacity: 0.4;
+}
+
+/* --- Motion preferences --- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in {
+    animation: none;
+  }
+}
+
+/* Header collapses to just the masthead below the navigation breakpoint. */
+@media (max-width: 900px) {
+  :root {
+    --header-h: 106px;
+  }
 }

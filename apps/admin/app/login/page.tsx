@@ -3,6 +3,8 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { normalizeCallbackUrl } from '@/lib/callback-url';
+import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/credentials';
 import styles from './page.module.css';
 
 function LoginForm() {
@@ -32,7 +34,10 @@ function LoginForm() {
       return;
     }
 
-    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+    // Only local `/dashboard*` destinations are honoured; anything else falls
+    // back to the dashboard, so an attacker-supplied `callbackUrl` cannot turn
+    // the login page into an open redirect.
+    const callbackUrl = normalizeCallbackUrl(searchParams.get('callbackUrl'));
     router.push(callbackUrl);
     router.refresh();
   }
@@ -57,6 +62,7 @@ function LoginForm() {
               type="email"
               name="email"
               placeholder="admin@aldimobilya.com"
+              maxLength={MAX_EMAIL_LENGTH}
               required
               autoFocus
             />
@@ -68,6 +74,7 @@ function LoginForm() {
               type="password"
               name="password"
               placeholder="••••••••"
+              maxLength={MAX_PASSWORD_LENGTH}
               required
             />
           </div>

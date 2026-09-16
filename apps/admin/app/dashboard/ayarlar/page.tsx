@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import ImageUploader, { type UploadedImage } from '@/components/ImageUploader';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import HeroSlideshowEditor from '@/components/HeroSlideshowEditor';
+import { normalizeHeroSettings, toHeroSettingsPayload, type HeroSlideshowSettings } from '@/components/heroSettings';
+import { readErrorMessage } from '@/components/upload';
+import { useAdminRole } from '@/components/useAdminRole';
+import { can } from '@/lib/roles';
 import styles from './page.module.css';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 interface SettingsState {
   whatsapp: string;
@@ -36,51 +44,95 @@ const EMPTY_SETTINGS: SettingsState = {
 
 export default function AyarlarPage() {
   const [form, setForm] = useState<SettingsState>(EMPTY_SETTINGS);
-  const [heroImages, setHeroImages] = useState<UploadedImage[]>([]);
+  const [hero, setHero] = useState<HeroSlideshowSettings>(() => normalizeHeroSettings(null));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  // A failed load leaves the form empty; saving it would wipe the stored
+  // settings, so writes stay blocked until a reload succeeds.
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  // Presentation-only hint; the API re-checks `settings:write` per request.
+  const { role, loading: roleLoading } = useAdminRole();
+  const canWrite = can(role, 'settings:write');
+  const readOnly = roleLoading || !canWrite;
+  const locked = readOnly || loadFailed;
+
+  // Guards against a stale response overwriting a newer one (and against
+  // setting state after unmount).
+  const loadSeq = useRef(0);
+  const loadController = useRef<AbortController | null>(null);
+  const saveController = useRef<AbortController | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Initial loading state is established by useState, not by the effect.
+  // Retry UI transitions belong to the click handler below.
+  const loadSettings = useCallback(async () => {
+    const seq = ++loadSeq.current;
+    loadController.current?.abort();
+    const controller = new AbortController();
+    loadController.current = controller;
+    const isCurrent = () => !controller.signal.aborted && seq === loadSeq.current;
+
+    try {
+      const res = await fetch('/api/settings', { signal: controller.signal, cache: 'no-store' });
+      if (!isCurrent()) return;
+
+      if (!res.ok) {
+        const message = await readErrorMessage(res, 'Ayarlar yüklenemedi');
+        if (!isCurrent()) return;
+        setError(message);
+        setLoadFailed(true);
+        return;
+      }
+
+      const data: unknown = await res.json();
+      if (!isCurrent()) return;
+
+      const settings = isRecord(data) ? data.settings : null;
+      if (!isRecord(settings)) throw new Error('Geçersiz ayarlar yanıtı.');
+      setForm({
+        whatsapp: typeof settings.whatsapp === 'string' ? settings.whatsapp : '',
+        phone: typeof settings.phone === 'string' ? settings.phone : '',
+        email: typeof settings.email === 'string' ? settings.email : '',
+        address: typeof settings.address === 'string' ? settings.address : '',
+        instagram: typeof settings.instagram === 'string' ? settings.instagram : '',
+        facebook: typeof settings.facebook === 'string' ? settings.facebook : '',
+        tiktok: typeof settings.tiktok === 'string' ? settings.tiktok : '',
+        youtube: typeof settings.youtube === 'string' ? settings.youtube : '',
+        heroTitleTr: typeof settings.heroTitleTr === 'string' ? settings.heroTitleTr : '',
+        heroSubtitleTr: typeof settings.heroSubtitleTr === 'string' ? settings.heroSubtitleTr : '',
+        elfSightCode: typeof settings.elfSightCode === 'string' ? settings.elfSightCode : '',
+        metaDescTr: typeof settings.metaDescTr === 'string' ? settings.metaDescTr : '',
+      });
+      // Preserve both the legacy array and full slideshow response contracts.
+      setHero(normalizeHeroSettings(settings.heroSlideshow ?? settings.heroImages));
+    } catch (err) {
+      if (!isCurrent()) return;
+      setError(err instanceof Error ? `Bağlantı hatası: ${err.message}` : 'Ayarlar yüklenemedi.');
+      setLoadFailed(true);
+    } finally {
+      if (isCurrent()) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch('/api/settings');
-        const data = await res.json();
-        if (cancelled) return;
-
-        if (res.ok && data.settings) {
-          const s = data.settings;
-          setForm({
-            whatsapp: s.whatsapp ?? '',
-            phone: s.phone ?? '',
-            email: s.email ?? '',
-            address: s.address ?? '',
-            instagram: s.instagram ?? '',
-            facebook: s.facebook ?? '',
-            tiktok: s.tiktok ?? '',
-            youtube: s.youtube ?? '',
-            heroTitleTr: s.heroTitleTr ?? '',
-            heroSubtitleTr: s.heroSubtitleTr ?? '',
-            elfSightCode: s.elfSightCode ?? '',
-            metaDescTr: s.metaDescTr ?? '',
-          });
-          const urls: string[] = Array.isArray(s.heroImages) ? s.heroImages : [];
-          setHeroImages(urls.map((url, i) => ({ url, publicId: `hero-${i}` })));
-        }
-      } catch (err) {
-        console.error('Ayarlar yüklenemedi:', err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
+    void loadSettings();
     return () => {
-      cancelled = true;
+      loadSeq.current += 1;
+      loadController.current?.abort();
+      saveController.current?.abort();
+      if (savedTimer.current) clearTimeout(savedTimer.current);
     };
-  }, []);
+  }, [loadSettings]);
+
+  function retryLoad() {
+    setLoading(true);
+    setError('');
+    setLoadFailed(false);
+    void loadSettings();
+  }
 
   function update<K extends keyof SettingsState>(key: K, value: SettingsState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -88,6 +140,10 @@ export default function AyarlarPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (locked || loading || saving || saveController.current) return;
+    const controller = new AbortController();
+    saveController.current = controller;
+    if (savedTimer.current) clearTimeout(savedTimer.current);
     setSaving(true);
     setError('');
     setSaved(false);
@@ -95,24 +151,24 @@ export default function AyarlarPage() {
     try {
       const res = await fetch('/api/settings', {
         method: 'PUT',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          heroImages: heroImages.map((img) => img.url),
-        }),
+        body: JSON.stringify({ ...form, heroImages: toHeroSettingsPayload(hero) }),
       });
-
+      if (controller.signal.aborted) return;
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Ayarlar kaydedilemedi.');
+        const message = await readErrorMessage(res, 'Ayarlar kaydedilemedi');
+        if (!controller.signal.aborted) setError(message);
+        return;
       }
-
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      savedTimer.current = setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ayarlar kaydedilemedi.');
+      if (controller.signal.aborted) return;
+      setError(err instanceof Error ? `Bağlantı hatası: ${err.message}` : 'Ayarlar kaydedilemedi. Tekrar deneyiniz.');
     } finally {
-      setSaving(false);
+      if (!controller.signal.aborted) setSaving(false);
+      if (saveController.current === controller) saveController.current = null;
     }
   }
 
@@ -139,9 +195,41 @@ export default function AyarlarPage() {
         )}
       </div>
 
+      {error && (
+        <div className={styles.errorBanner} role="alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {error}
+        </div>
+      )}
+
+      {loadFailed && (
+        <div className={styles.errorBanner} role="alert">
+          <span>
+            Ayarlar yüklenemediği için kaydetme geçici olarak kapatıldı; boş bir formun mevcut
+            ayarların üzerine yazmasını önlemek için önce yeniden yükleyin.
+          </span>
+          <button type="button" className="admin-btn admin-btn-ghost" onClick={retryLoad}>
+            Tekrar Dene
+          </button>
+        </div>
+      )}
+
+      {!roleLoading && !canWrite && (
+        <div className={styles.readOnlyBanner} role="status">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Bu sayfayı görüntüleyebilirsiniz, ancak site ayarlarını yalnızca yönetici (ADMIN)
+          kaydedebilir.
+        </div>
+      )}
+
       <form onSubmit={handleSave} className={styles.form}>
-        {/* Contact */}
-        <div className="admin-card">
+        <fieldset className={styles.fieldset} disabled={locked}>
+          {/* Contact */}
+          <div className="admin-card">
           <h2 className={styles.sectionLabel}>İletişim Bilgileri</h2>
           <div className={`${styles.fields} form-grid-2`}>
             <div className="field-group">
@@ -267,13 +355,7 @@ export default function AyarlarPage() {
                 Birden fazla görsel eklerseniz ana sayfada otomatik geçişli bir slayt gösterisi
                 olarak görünür. Sıralama, görüntülenme sırasını belirler.
               </span>
-              <ImageUploader
-                value={heroImages}
-                onChange={setHeroImages}
-                folder="aldimobilya/hero"
-                maxFiles={8}
-                reorderable
-              />
+              <HeroSlideshowEditor value={hero} onChange={setHero} />
             </div>
           </div>
         </div>
@@ -317,11 +399,18 @@ export default function AyarlarPage() {
           </div>
         </div>
 
-        {error && <p className={styles.hint} style={{ color: '#ef4444' }}>{error}</p>}
-
         {/* Save */}
         <div className={styles.saveRow}>
-          <button type="submit" className="admin-btn admin-btn-primary" disabled={saving}>
+          <button
+            type="submit"
+            className="admin-btn admin-btn-primary"
+            disabled={saving || locked}
+            title={
+              canWrite
+                ? undefined
+                : 'Ayarları yalnızca yönetici (ADMIN) kaydedebilir.'
+            }
+          >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
               <polyline points="17 21 17 13 7 13 7 21"/>
@@ -330,6 +419,7 @@ export default function AyarlarPage() {
             {saving ? 'Kaydediliyor...' : 'Ayarları Kaydet'}
           </button>
         </div>
+        </fieldset>
       </form>
     </div>
   );

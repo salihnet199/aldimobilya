@@ -16,3 +16,19 @@
   padding: 32px;
   max-width: 1200px;
 }
+
+/* Narrow screens: the sidebar (Sidebar.module.css) turns into a static top bar,
+   so the fixed-width offset must be removed. Keep both breakpoints in sync. */
+@media (max-width: 900px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .content {
+    padding: 20px 16px;
+  }
+}

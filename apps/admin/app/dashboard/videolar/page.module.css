@@ -51,3 +51,169 @@
   object-fit: cover;
   background: var(--admin-surface);
 }
+
+.videoThumbPlaceholder {
+  width: 72px;
+  height: 48px;
+  border-radius: 6px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-faint);
+}
+
+.videoTitle { font-weight: 600; }
+
+.videoLink {
+  color: var(--admin-gold);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Shown instead of a public link when the video is hidden. */
+.unpublishedNote {
+  font-size: 0.78rem;
+  color: var(--admin-text-faint);
+}
+
+.mediaLink {
+  font-size: 0.78rem;
+  color: var(--admin-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mediaLink:hover { color: var(--admin-text); }
+
+/* Replaces the delete button for accounts without `videos:delete`. */
+.lockedNote {
+  font-size: 0.78rem;
+  color: var(--admin-text-faint);
+  white-space: nowrap;
+}
+
+/* Banners */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #f87171;
+  word-break: break-word;
+}
+.errorBanner svg { flex-shrink: 0; }
+
+.successBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #34d399;
+}
+.successBanner svg { flex-shrink: 0; }
+
+/* Form helpers */
+.inlineRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hint { font-size: 0.78rem; color: var(--admin-text-faint); }
+
+.hiddenInput { display: none; }
+
+/* Table states */
+.stateCell {
+  text-align: center;
+  padding: 30px 16px;
+  color: var(--admin-text-muted);
+}
+
+.loadError {
+  color: #f87171;
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.emptyHint { font-size: 0.82rem; color: var(--admin-text-faint); }
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: -2px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--admin-gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Row actions */
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.publishBtn,
+.deleteBtn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.publishBtn {
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  color: var(--admin-gold);
+}
+.publishBtn:hover:not(:disabled) { background: rgba(201, 168, 76, 0.22); }
+
+.deleteBtn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+.deleteBtn:hover:not(:disabled) { background: rgba(239, 68, 68, 0.22); }
+
+.publishBtn:disabled,
+.deleteBtn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Mobile: scroll the table instead of squeezing it */
+@media (max-width: 820px) {
+  .title { font-size: 1.4rem; }
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tableWrap table { min-width: 640px; }
+  .inlineRow { align-items: stretch; }
+  .inlineRow button { min-height: 44px; justify-content: center; }
+  .actions button { width: 100%; justify-content: center; min-height: 44px; }
+  .publishBtn,
+  .deleteBtn { min-height: 36px; padding: 8px 14px; }
+}

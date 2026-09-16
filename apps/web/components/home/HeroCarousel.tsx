@@ -1,39 +1,97 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type FocusEvent,
+} from 'react';
 import Image from 'next/image';
+import { imageProps } from '@/lib/media';
 import styles from './HeroCarousel.module.css';
 
-const SLIDE_DURATION_MS = 6500;
+const DEFAULT_INTERVAL_MS = 6500;
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-export default function HeroCarousel({ images }: { images: string[] }) {
+/** 'auto' follows the admin autoplay flag; the others are explicit user intent. */
+type PlaybackIntent = 'auto' | 'play' | 'pause';
+
+function subscribeReducedMotion(onChange: () => void) {
+  const media = window.matchMedia(REDUCED_MOTION_QUERY);
+  media.addEventListener('change', onChange);
+  return () => media.removeEventListener('change', onChange);
+}
+
+function getReducedMotion() {
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+interface HeroCarouselProps {
+  images: string[];
+  /** Autoplay preference from the admin slideshow settings. */
+  autoplay?: boolean;
+  intervalMs?: number;
+}
+
+export default function HeroCarousel({
+  images,
+  autoplay = true,
+  intervalMs = DEFAULT_INTERVAL_MS,
+}: HeroCarouselProps) {
   const [active, setActive] = useState(0);
+  const [intent, setIntent] = useState<PlaybackIntent>('auto');
+  const [focusWithin, setFocusWithin] = useState(false);
+
+  // OS-level motion preference, read without a setState-in-effect cascade.
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotion,
+    () => false,
+  );
+
+  const multiple = images.length > 1;
+  const playing =
+    intent === 'play' ? true : intent === 'pause' ? false : autoplay && !reducedMotion;
+  // Keyboard focus pauses the rotation unless the visitor explicitly pressed play.
+  const running = multiple && playing && !(focusWithin && intent !== 'play');
 
   useEffect(() => {
-    if (images.length < 2) return;
-
-    const id = setInterval(() => {
+    if (!running) return;
+    const id = window.setInterval(() => {
       setActive((prev) => (prev + 1) % images.length);
-    }, SLIDE_DURATION_MS);
+    }, intervalMs);
+    return () => window.clearInterval(id);
+  }, [running, images.length, intervalMs]);
 
-    return () => clearInterval(id);
-  }, [images.length]);
+  const handleBlur = useCallback((event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setFocusWithin(false);
+    }
+  }, []);
 
   if (images.length === 0) return null;
 
   return (
-    <div className={styles.carousel} aria-hidden="true">
+    <div
+      className={styles.carousel}
+      role="group"
+      aria-roledescription="karusel"
+      aria-label="Tanıtım görselleri"
+      onFocus={() => setFocusWithin(true)}
+      onBlur={handleBlur}
+    >
       {images.map((src, i) => (
         <div
           key={src + i}
           className={`${styles.slide} ${i === active ? styles.slideActive : ''}`}
         >
           <Image
-            src={src}
+            {...imageProps(src)}
             alt=""
             fill
             priority={i === 0}
-            unoptimized
+            loading={i === 0 ? undefined : 'lazy'}
             sizes="100vw"
             className={i === active ? styles.kenBurns : ''}
             style={{ objectFit: 'cover' }}
@@ -41,17 +99,39 @@ export default function HeroCarousel({ images }: { images: string[] }) {
         </div>
       ))}
 
-      {images.length > 1 && (
-        <div className={styles.indicators}>
-          {images.map((src, i) => (
-            <button
-              key={src + i}
-              type="button"
-              className={`${styles.indicator} ${i === active ? styles.indicatorActive : ''}`}
-              onClick={() => setActive(i)}
-              aria-label={`Görsel ${i + 1}`}
-            />
-          ))}
+      {multiple && (
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={styles.toggle}
+            onClick={() => setIntent(playing ? 'pause' : 'play')}
+            aria-pressed={playing}
+            aria-label={playing ? 'Slaytları duraklat' : 'Slaytları oynat'}
+          >
+            {playing ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <rect x="6" y="5" width="4" height="14" rx="1" />
+                <rect x="14" y="5" width="4" height="14" rx="1" />
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            )}
+          </button>
+
+          <div className={styles.indicators}>
+            {images.map((src, i) => (
+              <button
+                key={src + i}
+                type="button"
+                className={`${styles.indicator} ${i === active ? styles.indicatorActive : ''}`}
+                onClick={() => setActive(i)}
+                aria-label={`${i + 1}. görseli göster`}
+                aria-current={i === active ? 'true' : undefined}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

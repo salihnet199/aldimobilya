@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
+import { MAX_IMAGE_BYTES, formatBytes, uploadMedia, validateImageFile } from './upload';
 import styles from './ImageUploader.module.css';
 
 export interface UploadedImage {
@@ -16,46 +17,13 @@ interface Props {
   folder?: string;
   /** Show up/down controls to reorder images (e.g. for a homepage slider sequence). */
   reorderable?: boolean;
-}
-
-async function uploadFileDirect(file: File, folder: string): Promise<UploadedImage> {
-  // 1. Direct client upload to Cloudinary (bypasses the platform's request body
-  //    size limit and is faster for large photography).
-  try {
-    const signRes = await fetch(`/api/upload/sign?folder=${encodeURIComponent(folder)}`);
-    if (signRes.ok) {
-      const { signature, timestamp, apiKey, cloudName } = await signRes.json();
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('api_key', apiKey);
-      fd.append('timestamp', String(timestamp));
-      fd.append('signature', signature);
-      fd.append('folder', folder);
-
-      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-        method: 'POST',
-        body: fd,
-      });
-      const cloudData = await cloudRes.json();
-      if (cloudRes.ok && cloudData.secure_url) {
-        return { url: cloudData.secure_url, publicId: cloudData.public_id || '' };
-      }
-    }
-  } catch {
-    // fall through to the server-side route below
-  }
-
-  // 2. Fallback: internal Next.js API route (server-side Cloudinary upload).
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('folder', folder);
-  const res = await fetch('/api/upload', { method: 'POST', body: fd });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `${file.name} yüklenemedi.`);
-  }
-  const data = await res.json();
-  return { url: data.url, publicId: data.publicId || '' };
+  /**
+   * Label the first image as the cover and offer a "make cover" action on the
+   * others. Defaults to the previous behaviour: on when reordering is off.
+   */
+  coverBadge?: boolean;
+  /** Notifies the parent so it can disable its own submit button while uploading. */
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
 export default function ImageUploader({
@@ -64,40 +32,66 @@ export default function ImageUploader({
   maxFiles = 10,
   folder = 'aldimobilya/rooms',
   reorderable = false,
+  coverBadge,
+  onUploadingChange,
 }: Props) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const showCover = coverBadge ?? !reorderable;
+
   const uploadFiles = useCallback(
     async (files: FileList | File[]) => {
-      const arr = Array.from(files).filter((f) => f.type.startsWith('image/'));
+      const arr = Array.from(files);
       if (!arr.length) return;
 
       const remaining = maxFiles - value.length;
-      const toUpload = arr.slice(0, remaining);
+      if (remaining <= 0) {
+        setError(`En fazla ${maxFiles} görsel ekleyebilirsiniz.`);
+        return;
+      }
+
+      const rejected: string[] = [];
+      const accepted: File[] = [];
+      for (const file of arr) {
+        const reason = validateImageFile(file);
+        if (reason) rejected.push(reason);
+        else accepted.push(file);
+      }
+
+      const toUpload = accepted.slice(0, remaining);
+      if (accepted.length > toUpload.length) {
+        rejected.push(`En fazla ${maxFiles} görsel ekleyebilirsiniz; ${accepted.length - toUpload.length} dosya yüklenmedi.`);
+      }
+
+      setError(rejected.join(' '));
+
+      if (!toUpload.length) return;
 
       setUploading(true);
-      setError('');
-
+      onUploadingChange?.(true);
       try {
         const results: UploadedImage[] = [];
         for (const file of toUpload) {
-          results.push(await uploadFileDirect(file, folder));
+          results.push(await uploadMedia(file, folder, 'image'));
         }
         onChange?.([...value, ...results]);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Yükleme başarısız. Tekrar deneyin.');
       } finally {
         setUploading(false);
+        onUploadingChange?.(false);
+        if (inputRef.current) inputRef.current.value = '';
       }
     },
-    [value, onChange, maxFiles, folder],
+    [value, onChange, maxFiles, folder, onUploadingChange],
   );
 
-  const handleRemove = (publicId: string) => {
-    onChange?.(value.filter((img) => img.publicId !== publicId));
+  const handleRemove = (index: number) => {
+    setError('');
+    onChange?.(value.filter((_, i) => i !== index));
   };
 
   const moveImage = (index: number, direction: -1 | 1) => {
@@ -108,29 +102,48 @@ export default function ImageUploader({
     onChange?.(next);
   };
 
+  const makeCover = (index: number) => {
+    if (index === 0) return;
+    const next = [...value];
+    const [item] = next.splice(index, 1);
+    next.unshift(item);
+    onChange?.(next);
+  };
+
   return (
     <div className={styles.root}>
       {/* Thumbnails */}
       {value.length > 0 && (
         <div className={styles.grid}>
           {value.map((img, i) => (
-            <div key={img.publicId} className={styles.thumb}>
+            <div key={img.publicId || img.url || i} className={styles.thumb}>
               <Image
                 src={img.url}
                 alt={`Görsel ${i + 1}`}
                 fill
-                sizes="120px"
+                sizes="(max-width: 640px) 33vw, 120px"
+                unoptimized
                 style={{ objectFit: 'cover' }}
               />
               <button
                 type="button"
                 className={styles.removeBtn}
-                onClick={() => handleRemove(img.publicId)}
-                aria-label="Görseli kaldır"
+                onClick={() => handleRemove(i)}
+                aria-label={`Görsel ${i + 1} kaldır`}
               >
                 ×
               </button>
-              {i === 0 && !reorderable && <span className={styles.heroBadge}>Kapak</span>}
+              {showCover && i === 0 && <span className={styles.heroBadge}>Kapak</span>}
+              {showCover && i > 0 && (
+                <button
+                  type="button"
+                  className={styles.coverBtn}
+                  onClick={() => makeCover(i)}
+                  aria-label={`Görsel ${i + 1} kapak yap`}
+                >
+                  Kapak Yap
+                </button>
+              )}
               {reorderable && value.length > 1 && (
                 <div className={styles.reorderControls}>
                   <button
@@ -183,21 +196,23 @@ export default function ImageUploader({
                 <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
               <span>Görselleri sürükleyin veya <u>seçin</u></span>
-              <span className={styles.hint}>PNG, JPG, WebP — Maks 10MB</span>
+              <span className={styles.hint}>
+                JPG, PNG, WebP, AVIF, GIF — maks. {formatBytes(MAX_IMAGE_BYTES)} • {value.length}/{maxFiles}
+              </span>
             </>
           )}
           <input
             ref={inputRef}
             type="file"
             multiple
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
             className={styles.hiddenInput}
             onChange={(e) => e.target.files && uploadFiles(e.target.files)}
           />
         </div>
       )}
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p className={styles.error} role="alert">{error}</p>}
     </div>
   );
 }

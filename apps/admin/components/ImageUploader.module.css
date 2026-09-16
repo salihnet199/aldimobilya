@@ -53,6 +53,24 @@
   letter-spacing: 0.06em;
 }
 
+.coverBtn {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.15s;
+}
+.coverBtn:hover { background: rgba(201, 168, 76, 0.85); color: #000; }
+
 .reorderControls {
   position: absolute;
   bottom: 4px;
@@ -142,4 +160,23 @@
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 6px;
+}
+
+/* Mobile: tighter grid, larger touch targets */
+@media (max-width: 640px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+
+  .removeBtn,
+  .reorderBtn {
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+
+  .coverBtn {
+    padding: 5px 8px;
+    font-size: 0.65rem;
+  }
+
+  .dropZone { padding: 24px 16px; }
 }

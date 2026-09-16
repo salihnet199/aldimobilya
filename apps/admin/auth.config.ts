@@ -10,7 +10,11 @@ export const authConfig = {
   pages: {
     signIn: '/login',
   },
-  session: { strategy: 'jwt' },
+  // `role` in the token is a routing hint for the Edge middleware only. The
+  // authoritative role is re-read from the database per request in
+  // `lib/auth-guard.ts`, so a demotion cannot be bypassed with a stale token.
+  // `maxAge` bounds how long any stale token can be replayed at all.
+  session: { strategy: 'jwt', maxAge: 60 * 60 * 8, updateAge: 60 * 60 },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

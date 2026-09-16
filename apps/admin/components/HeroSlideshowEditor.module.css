@@ -1,0 +1,51 @@
+/* HeroSlideshowEditor.module.css */
+
+.root { display: flex; flex-direction: column; gap: 14px; }
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+}
+
+.intervalRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.intervalRow :global(.admin-label) { margin-bottom: 0; }
+
+.range {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--admin-gold);
+  cursor: pointer;
+  height: 24px;
+}
+.range:disabled { cursor: not-allowed; opacity: 0.45; }
+
+.intervalValue {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--admin-gold);
+  min-width: 44px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--admin-text-faint);
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .intervalRow { flex-wrap: wrap; }
+  .range { flex-basis: 100%; order: 3; }
+  .controls { padding: 12px; }
+}

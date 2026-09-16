@@ -1,8 +1,16 @@
-/* Footer.module.css */
+/* Footer.module.css — warm light, minimal premium */
 
 .footer {
-  background: var(--black-soft);
-  border-top: 1px solid var(--border);
+  --footer-bg: #f7f5f0;
+  --footer-bg-alt: #f1eee6;
+  --footer-ink: #262923;
+  --footer-olive: #5d6754;
+  --footer-gold: #93703f;
+  --footer-line: rgba(38, 41, 35, 0.1);
+
+  background: var(--footer-bg);
+  color: var(--footer-ink);
+  border-top: 1px solid var(--footer-line);
   margin-top: auto;
 }
 
@@ -32,14 +40,14 @@
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--white);
+  color: var(--footer-ink);
   line-height: 1;
 }
 
 .logoSub {
   font-size: 0.65rem;
   letter-spacing: 0.35em;
-  color: var(--gold);
+  color: var(--footer-gold);
   text-transform: uppercase;
   font-weight: 500;
   margin-top: 2px;
@@ -47,7 +55,7 @@
 
 .brandDesc {
   font-size: 0.9rem;
-  color: var(--gray-400);
+  color: var(--footer-olive);
   line-height: 1.7;
   max-width: 360px;
 }
@@ -61,18 +69,18 @@
   align-items: center;
   gap: var(--space-2);
   font-size: 0.875rem;
-  color: var(--gray-300);
+  color: var(--footer-olive);
   text-decoration: none;
   padding: 8px 14px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background: var(--black-card);
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--footer-line);
+  background: #ffffff;
   transition: border-color var(--transition-base), color var(--transition-base);
 }
 
 .socialLink:hover {
-  border-color: var(--border-gold);
-  color: var(--gold);
+  border-color: var(--footer-gold);
+  color: var(--footer-gold);
 }
 
 /* Navigation Col */
@@ -86,7 +94,7 @@
   font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--footer-ink);
   letter-spacing: 0.05em;
   margin-bottom: var(--space-1);
 }
@@ -102,13 +110,13 @@
 
 .links a {
   font-size: 0.875rem;
-  color: var(--gray-400);
+  color: var(--footer-olive);
   text-decoration: none;
   transition: color var(--transition-fast), padding-left var(--transition-fast);
 }
 
 .links a:hover {
-  color: var(--gold);
+  color: var(--footer-gold);
   padding-left: 4px;
 }
 
@@ -117,19 +125,68 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  align-items: flex-start;
 }
 
 .contactText {
   font-size: 0.875rem;
-  color: var(--gray-400);
+  color: var(--footer-olive);
   line-height: 1.6;
+}
+
+.contactList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contactLink {
+  font-size: 0.875rem;
+  color: var(--footer-ink);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.contactLink:hover {
+  color: var(--footer-gold);
+}
+
+.contactAddress {
+  font-size: 0.875rem;
+  color: var(--footer-olive);
+  line-height: 1.6;
+}
+
+.whatsappBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: 12px 26px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--footer-gold);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background var(--transition-base), transform var(--transition-base);
+}
+
+.whatsappBtn:hover {
+  background: #7d5f34;
+  transform: translateY(-1px);
 }
 
 /* Bottom Bar */
 .bottomBar {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--footer-line);
   padding-block: var(--space-5);
-  background: var(--black);
+  background: var(--footer-bg-alt);
 }
 
 .bottomInner {
@@ -143,7 +200,7 @@
 .copy,
 .builtWith {
   font-size: 0.8125rem;
-  color: var(--gray-500);
+  color: var(--footer-olive);
   margin: 0;
 }
 

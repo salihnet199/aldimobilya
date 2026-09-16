@@ -1,6 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { prisma } from '@aldimobilya/db';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://aldimobilya.com';
+
+// Rooms are added and hidden from the admin panel, so the sitemap must be
+// generated per request instead of being cached at build time.
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
@@ -11,21 +16,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/iletisim`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
   ];
 
-  // Dynamic room pages (will work once DB is connected)
-  const roomPages: MetadataRoute.Sitemap = [];
+  // Only rooms flagged as visible on the public site are listed.
+  let roomPages: MetadataRoute.Sitemap = [];
   try {
-    // const rooms = await prisma.room.findMany({
-    //   where: { isVisible: true },
-    //   select: { slug: true, updatedAt: true },
-    // });
-    // roomPages = rooms.map((r) => ({
-    //   url: `${siteUrl}/katalog/${r.slug}`,
-    //   lastModified: r.updatedAt,
-    //   changeFrequency: 'weekly',
-    //   priority: 0.8,
-    // }));
-  } catch {
-    // DB not yet connected — skip dynamic pages
+    const rooms = await prisma.room.findMany({
+      where: { isVisible: true },
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+    roomPages = rooms.map((room) => ({
+      url: `${siteUrl}/katalog/${room.slug}`,
+      lastModified: room.updatedAt,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+  } catch (err) {
+    console.error('[sitemap] rooms query failed:', err);
   }
 
   return [...staticPages, ...roomPages];

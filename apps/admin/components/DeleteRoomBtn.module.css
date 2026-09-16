@@ -17,11 +17,26 @@
   border-color: #ef4444;
 }
 
+.wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
 .confirmRow {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: #f87171;
+  line-height: 1.4;
+  max-width: 240px;
 }
 
 .confirmText {
@@ -51,4 +66,10 @@
   color: #a1a1aa;
   font-size: 0.75rem;
   cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .deleteBtn { min-height: 40px; justify-content: center; }
+  .yesBtn,
+  .noBtn { min-height: 34px; padding: 6px 12px; }
 }

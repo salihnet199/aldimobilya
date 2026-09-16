@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getSiteSettings, getWhatsAppHref } from '@/lib/site-settings';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -7,9 +8,17 @@ export const metadata: Metadata = {
   description: 'ALDi Mobilya — Lüks yatak odası mobilyasında zarafet, el işçiliği ve üstün kalite standardı.',
 };
 
-export default function AboutPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function AboutPage() {
+  const settings = await getSiteSettings();
+  const whatsappHref = getWhatsAppHref(
+    settings.whatsapp,
+    'Merhaba, hakkınızda daha fazla bilgi almak istiyorum.',
+  );
+
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div className={styles.page}>
       {/* Header */}
       <div className={styles.pageHeader}>
         <div className="container">
@@ -46,9 +55,10 @@ export default function AboutPage() {
                 Koleksiyonu İncele
               </Link>
               <a
-                href="https://wa.me/905000000000?text=Merhaba,%20hakkınızda%20daha%20fazla%20bilgi%20almak%20istiyorum."
-                target="_blank"
-                rel="noopener noreferrer"
+                href={whatsappHref}
+                {...(whatsappHref.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
                 className="btn btn-outline"
               >
                 Bizimle İletişime Geçin

@@ -1,7 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import {
+  MAX_IMAGE_BYTES,
+  MAX_VIDEO_BYTES,
+  formatBytes,
+  isSafeMediaUrl,
+  readErrorMessage,
+  uploadMedia,
+  validateImageFile,
+  validateVideoFile,
+} from '@/components/upload';
+import { useAdminRole } from '@/components/useAdminRole';
+import { publicVideoHref } from '@/lib/public-site';
 import styles from './page.module.css';
 
 interface VideoItem {
@@ -13,41 +25,30 @@ interface VideoItem {
   createdAt: string;
 }
 
-async function uploadDirect(file: File, folder: string): Promise<string> {
-  // Direct Cloudinary Upload via signature to bypass 4.5MB limit
-  const signRes = await fetch(`/api/upload/sign?folder=${encodeURIComponent(folder)}`);
-  if (signRes.ok) {
-    const { signature, timestamp, apiKey, cloudName } = await signRes.json();
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('api_key', apiKey);
-    fd.append('timestamp', String(timestamp));
-    fd.append('signature', signature);
-    fd.append('folder', folder);
+type VideoListResult =
+  | { kind: 'ok'; videos: VideoItem[] }
+  | { kind: 'error'; message: string };
 
-    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-      method: 'POST',
-      body: fd,
-    });
-    const cloudData = await cloudRes.json();
-    if (cloudRes.ok && cloudData.secure_url) {
-      return cloudData.secure_url;
+async function fetchVideoList(): Promise<VideoListResult> {
+  try {
+    const res = await fetch('/api/videos');
+    if (!res.ok) {
+      return { kind: 'error', message: await readErrorMessage(res, 'Videolar yüklenemedi') };
     }
+    const data = await res.json();
+    return { kind: 'ok', videos: Array.isArray(data.videos) ? (data.videos as VideoItem[]) : [] };
+  } catch (err) {
+    return {
+      kind: 'error',
+      message: err instanceof Error ? `Bağlantı hatası: ${err.message}` : 'Videolar yüklenemedi.',
+    };
   }
-
-  // Fallback to internal route
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('folder', folder);
-  const res = await fetch('/api/upload', { method: 'POST', body: fd });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Yükleme başarısız oldu.');
-  return data.url;
 }
 
 export default function VideolarPage() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Form states
   const [title, setTitle] = useState('');
@@ -56,67 +57,75 @@ export default function VideolarPage() {
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Presentation-only hint; the API re-checks `videos:delete` per request.
+  const { role, loading: roleLoading } = useAdminRole();
+  const canDelete = role === 'ADMIN';
 
   const videoFileRef = useRef<HTMLInputElement>(null);
   const thumbFileRef = useRef<HTMLInputElement>(null);
 
-  async function fetchVideos() {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/videos');
-      const data = await res.json();
-      if (res.ok && data.videos) {
-        setVideos(data.videos);
-      }
-    } catch (err) {
-      console.error('Videolar alınamadı:', err);
-    } finally {
-      setLoading(false);
+  const applyList = useCallback((result: VideoListResult) => {
+    if (result.kind === 'ok') {
+      setVideos(result.videos);
+      setLoadError('');
+    } else {
+      setLoadError(result.message);
     }
-  }
+    setLoading(false);
+  }, []);
+
+  const fetchVideos = useCallback(async () => {
+    applyList(await fetchVideoList());
+  }, [applyList]);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      try {
-        const res = await fetch('/api/videos');
-        const data = await res.json();
-        if (!cancelled && res.ok && data.videos) {
-          setVideos(data.videos);
-        }
-      } catch (err) {
-        console.error('Videolar alınamadı:', err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      const result = await fetchVideoList();
+      if (!cancelled) applyList(result);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [applyList]);
+
+  function reload() {
+    setLoadError('');
+    setLoading(true);
+    void fetchVideos();
+  }
 
   async function handleVideoFileUpload(files: FileList | null) {
-    if (!files?.length) return;
-    const file = files[0];
-    setUploadingVideo(true);
+    const file = files?.[0];
+    if (!file) return;
+
     setError('');
     setSuccess('');
+
+    const rejection = validateVideoFile(file);
+    if (rejection) {
+      setError(rejection);
+      if (videoFileRef.current) videoFileRef.current.value = '';
+      return;
+    }
+
+    setUploadingVideo(true);
     try {
-      const uploadedUrl = await uploadDirect(file, 'aldimobilya/videos');
-      setUrl(uploadedUrl);
+      const uploaded = await uploadMedia(file, 'aldimobilya/videos', 'video');
+      setUrl(uploaded.url);
       if (!title) {
-        // Dosya adından başlık türet
-        const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-        setTitle(cleanName);
+        // Derive a title from the file name.
+        setTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
       }
-      setSuccess('Video başarıyla yüklendi!');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Video yüklenemedi.';
-      setError(msg);
+      setSuccess('Video yüklendi. Kaydetmeyi unutmayın.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Video yüklenemedi.');
     } finally {
       setUploadingVideo(false);
       if (videoFileRef.current) videoFileRef.current.value = '';
@@ -124,17 +133,26 @@ export default function VideolarPage() {
   }
 
   async function handleThumbFileUpload(files: FileList | null) {
-    if (!files?.length) return;
-    const file = files[0];
-    setUploadingThumb(true);
+    const file = files?.[0];
+    if (!file) return;
+
     setError('');
+    setSuccess('');
+
+    const rejection = validateImageFile(file);
+    if (rejection) {
+      setError(rejection);
+      if (thumbFileRef.current) thumbFileRef.current.value = '';
+      return;
+    }
+
+    setUploadingThumb(true);
     try {
-      const uploadedUrl = await uploadDirect(file, 'aldimobilya/videos/thumbnails');
-      setThumbnail(uploadedUrl);
-      setSuccess('Küçük resim yüklendi!');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Resim yüklenemedi.';
-      setError(msg);
+      const uploaded = await uploadMedia(file, 'aldimobilya/videos/thumbnails', 'image');
+      setThumbnail(uploaded.url);
+      setSuccess('Küçük resim yüklendi.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Resim yüklenemedi.');
     } finally {
       setUploadingThumb(false);
       if (thumbFileRef.current) thumbFileRef.current.value = '';
@@ -150,8 +168,20 @@ export default function VideolarPage() {
       setError('Lütfen video başlığını giriniz.');
       return;
     }
-    if (!url.trim()) {
+
+    const videoUrl = url.trim();
+    if (!videoUrl) {
       setError('Lütfen bir video dosyası yükleyin veya bağlantı (URL) girin.');
+      return;
+    }
+    if (!isSafeMediaUrl(videoUrl)) {
+      setError('Video bağlantısı geçersiz. Yalnızca https:// adresleri veya / ile başlayan yollar kullanılabilir.');
+      return;
+    }
+
+    const thumbUrl = thumbnail.trim();
+    if (thumbUrl && !isSafeMediaUrl(thumbUrl)) {
+      setError('Küçük resim bağlantısı geçersiz. Yalnızca https:// adresleri veya / ile başlayan yollar kullanılabilir.');
       return;
     }
 
@@ -162,40 +192,73 @@ export default function VideolarPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
-          url: url.trim(),
-          thumbnail: thumbnail.trim() || null,
+          url: videoUrl,
+          thumbnail: thumbUrl || null,
           isPublic: true,
         }),
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Video kaydedilemedi.');
+        setError(await readErrorMessage(res, 'Video kaydedilemedi'));
         return;
       }
 
-      setSuccess('Video başarıyla eklendi!');
+      setSuccess('Video eklendi.');
       setTitle('');
       setUrl('');
       setThumbnail('');
-      fetchVideos();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Bağlantı hatası.';
-      setError(msg);
+      await fetchVideos();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bağlantı hatası oluştu.');
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Bu videoyu silmek istediğinize emin misiniz?')) return;
+  async function handleTogglePublic(video: VideoItem) {
+    const next = !video.isPublic;
+    setBusyId(video.id);
+    setError('');
+    setSuccess('');
     try {
-      const res = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setVideos((prev) => prev.filter((v) => v.id !== id));
+      const res = await fetch(`/api/videos/${encodeURIComponent(video.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublic: next }),
+      });
+
+      if (!res.ok) {
+        setError(await readErrorMessage(res, 'Video durumu güncellenemedi'));
+        return;
       }
-    } catch {
-      alert('Video silinirken hata oluştu.');
+
+      setVideos((prev) => prev.map((v) => (v.id === video.id ? { ...v, isPublic: next } : v)));
+      setSuccess(next ? `"${video.title}" yayına alındı.` : `"${video.title}" yayından kaldırıldı.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bağlantı hatası oluştu.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleDelete(video: VideoItem) {
+    if (!confirm(`"${video.title}" videosunu silmek istediğinize emin misiniz?`)) return;
+
+    setBusyId(video.id);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch(`/api/videos/${encodeURIComponent(video.id)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        setError(await readErrorMessage(res, 'Video silinemedi'));
+        return;
+      }
+      setVideos((prev) => prev.filter((v) => v.id !== video.id));
+      setSuccess('Video silindi.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Video silinirken bağlantı hatası oluştu.');
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -209,59 +272,70 @@ export default function VideolarPage() {
       </div>
 
       {error && (
-        <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, color: '#f87171' }}>
-          ✕ {error}
+        <div className={styles.errorBanner} role="alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {error}
         </div>
       )}
 
       {success && (
-        <div style={{ padding: '12px 16px', background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 8, color: '#4ade80' }}>
-          ✓ {success}
+        <div className={styles.successBanner} role="status">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+          {success}
         </div>
       )}
 
-      {/* Video Yükleme Formu */}
+      {/* Upload form */}
       <div className="admin-card">
         <h2 className={styles.sectionLabel}>Yeni Video Ekle</h2>
         <form onSubmit={handleSubmit} className={styles.fields}>
           <div className="field-group">
-            <label className="admin-label">Video Başlığı *</label>
+            <label className="admin-label" htmlFor="video-title">Video Başlığı *</label>
             <input
+              id="video-title"
               className="admin-input"
               type="text"
               placeholder="ör. Elegance Koleksiyon Tanıtımı"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              maxLength={200}
               required
             />
           </div>
 
           <div className="field-group">
-            <label className="admin-label">Video Dosyası Yükle (Doğrudan Yükleme)</label>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <label className="admin-label" htmlFor="video-file">Video Dosyası Yükle</label>
+            <div className={styles.inlineRow}>
               <button
+                id="video-file"
                 type="button"
-                className="admin-btn"
-                style={{ background: '#334155', color: '#fff', padding: '9px 16px', borderRadius: 8, cursor: 'pointer' }}
+                className="admin-btn admin-btn-ghost"
                 onClick={() => videoFileRef.current?.click()}
                 disabled={uploadingVideo}
               >
-                {uploadingVideo ? 'Video Yükleniyor...' : '📁 Bilgisayardan Video Seç'}
+                {uploadingVideo ? 'Video Yükleniyor…' : 'Bilgisayardan Video Seç'}
               </button>
               <input
                 ref={videoFileRef}
                 type="file"
-                accept="video/*"
-                style={{ display: 'none' }}
+                accept="video/mp4,video/webm,video/quicktime"
+                className={styles.hiddenInput}
                 onChange={(e) => handleVideoFileUpload(e.target.files)}
               />
-              <span style={{ fontSize: 13, color: '#94a3b8' }}>MP4, MOV, WebM formatları</span>
+              <span className={styles.hint}>
+                MP4, MOV, WebM — maks. {formatBytes(MAX_VIDEO_BYTES)}
+              </span>
             </div>
           </div>
 
           <div className="field-group">
-            <label className="admin-label">Veya Video URL (YouTube / Cloudinary)</label>
+            <label className="admin-label" htmlFor="video-url">Veya Güvenli Video Bağlantısı (YouTube / Cloudinary)</label>
             <input
+              id="video-url"
               className="admin-input"
               type="url"
               placeholder="https://..."
@@ -272,24 +346,25 @@ export default function VideolarPage() {
           </div>
 
           <div className="field-group">
-            <label className="admin-label">Küçük Resim (Thumbnail - Opsiyonel)</label>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+            <label className="admin-label" htmlFor="video-thumb">Küçük Resim (Thumbnail - Opsiyonel)</label>
+            <div className={styles.inlineRow}>
               <button
+                id="video-thumb"
                 type="button"
-                className="admin-btn"
-                style={{ background: '#1e293b', color: '#cbd5e1', padding: '8px 14px', borderRadius: 8, cursor: 'pointer' }}
+                className="admin-btn admin-btn-ghost"
                 onClick={() => thumbFileRef.current?.click()}
                 disabled={uploadingThumb}
               >
-                {uploadingThumb ? 'Yükleniyor...' : 'Kapak Resmi Seç'}
+                {uploadingThumb ? 'Yükleniyor…' : 'Kapak Resmi Seç'}
               </button>
               <input
                 ref={thumbFileRef}
                 type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
+                accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                className={styles.hiddenInput}
                 onChange={(e) => handleThumbFileUpload(e.target.files)}
               />
+              <span className={styles.hint}>JPG, PNG, WebP — maks. {formatBytes(MAX_IMAGE_BYTES)}</span>
             </div>
             <input
               className="admin-input"
@@ -306,38 +381,49 @@ export default function VideolarPage() {
               type="submit"
               disabled={saving || uploadingVideo || uploadingThumb}
             >
-              {saving ? 'Kaydediliyor...' : 'Videoyu Kaydet'}
+              {saving ? 'Kaydediliyor…' : 'Videoyu Kaydet'}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Kayıtlı Videolar Listesi */}
+      {/* Saved videos */}
       <div className={styles.tableWrap}>
         <table className="admin-table">
           <thead>
             <tr>
               <th>Önizleme</th>
               <th>Başlık</th>
-              <th>Bağlantı</th>
+              <th>Durum</th>
+              <th>Sitede</th>
               <th style={{ textAlign: 'right' }}>İşlemler</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
-                  Videolar yükleniyor...
+                <td colSpan={5} className={styles.stateCell}>
+                  <span className={styles.spinner} aria-hidden="true" /> Videolar yükleniyor…
+                </td>
+              </tr>
+            ) : loadError ? (
+              <tr>
+                <td colSpan={5} className={styles.stateCell}>
+                  <p className={styles.loadError} role="alert">{loadError}</p>
+                  <button type="button" className="admin-btn admin-btn-ghost" onClick={reload}>
+                    Tekrar Dene
+                  </button>
                 </td>
               </tr>
             ) : videos.length === 0 ? (
               <tr>
-                <td colSpan={4}>
+                <td colSpan={5}>
                   <div className={styles.emptyState}>
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.8">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
                       <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                     </svg>
                     <p>Henüz kayıtlı video bulunmuyor.</p>
+                    <p className={styles.emptyHint}>Yukarıdaki formdan ilk videonuzu ekleyin.</p>
                   </div>
                 </td>
               </tr>
@@ -355,31 +441,65 @@ export default function VideolarPage() {
                         className={styles.videoThumb}
                       />
                     ) : (
-                      <div className={styles.videoThumb} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                        ▶
+                      <div className={styles.videoThumbPlaceholder}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                          <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                        </svg>
                       </div>
                     )}
                   </td>
-                  <td style={{ fontWeight: 600 }}>{vid.title}</td>
+                  <td className={styles.videoTitle}>{vid.title}</td>
                   <td>
-                    <a
-                      href={vid.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ color: '#c5a880', fontSize: 13, textDecoration: 'underline' }}
-                    >
-                      İzle / Bağlantı
-                    </a>
+                    <span className={`admin-badge ${vid.isPublic ? 'admin-badge-green' : 'admin-badge-yellow'}`}>
+                      {vid.isPublic ? 'Yayında' : 'Gizli'}
+                    </span>
                   </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(vid.id)}
-                      className="admin-btn"
-                      style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '6px 12px', borderRadius: 6, fontSize: 13, cursor: 'pointer' }}
-                    >
-                      Sil
-                    </button>
+                  <td>
+                    <div className={styles.linkCell}>
+                      {vid.isPublic ? (
+                        <a
+                          href={publicVideoHref(vid.id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.videoLink}
+                        >
+                          Sitede Gör
+                        </a>
+                      ) : (
+                        <span className={styles.unpublishedNote}>Yayında değil</span>
+                      )}
+                      {isSafeMediaUrl(vid.url) && (
+                        <a href={vid.url} target="_blank" rel="noreferrer" className={styles.mediaLink}>
+                          Dosyayı Aç
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div className={styles.rowActions}>
+                      <button
+                        type="button"
+                        onClick={() => void handleTogglePublic(vid)}
+                        disabled={busyId === vid.id}
+                        className={styles.publishBtn}
+                      >
+                        {busyId === vid.id ? '…' : vid.isPublic ? 'Yayından Kaldır' : 'Yayınla'}
+                      </button>
+                      {canDelete ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleDelete(vid)}
+                          disabled={busyId === vid.id}
+                          className={styles.deleteBtn}
+                        >
+                          Sil
+                        </button>
+                      ) : (
+                        <span className={styles.lockedNote}>
+                          {roleLoading ? '…' : 'Silme: yönetici'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))

@@ -1,159 +1,88 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { imageProps } from '@/lib/media';
 import styles from './Header.module.css';
 
 const navLinks = [
   { href: '/', label: 'Ana Sayfa' },
-  { href: '/katalog', label: 'Yatak Odaları' },
-  { href: '/medya', label: 'Medya' },
-  { href: '/hakkimizda', label: 'Hakkımızda' },
+  { href: '/katalog', label: 'Koleksiyonlar' },
+  { href: '/medya', label: 'Fotoğraf & Video' },
+  { href: '/hakkimizda', label: 'Hikâyemiz' },
   { href: '/iletisim', label: 'İletişim' },
 ];
 
-export default function Header() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+export default function Header({ contactHref = '/iletisim' }: { contactHref?: string }) {
   const pathname = usePathname();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const external = contactHref.startsWith('https://');
+  const isActive = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
 
-  // Close the mobile menu when the route changes. Adjusted during render
-  // (per React's guidance) instead of in an effect, to avoid an extra
-  // render pass every time the pathname changes.
-  const [prevPathname, setPrevPathname] = useState(pathname);
-  if (pathname !== prevPathname) {
-    setPrevPathname(pathname);
-    setMenuOpen(false);
+  function closeMenu() {
+    dialog.current?.close();
+    setOpen(false);
+    trigger.current?.focus();
   }
 
+  function openMenu() {
+    dialog.current?.showModal();
+    setOpen(true);
+  }
+
+  // Close on navigation (back/forward, or any link that does not close it
+  // itself). `dialog.close()` also restores focus natively.
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (!dialog.current?.open) return;
+    dialog.current.close();
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [menuOpen]);
-
-  const isHome = pathname === '/';
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const media = window.matchMedia('(min-width: 901px)');
+    const closeAtDesktop = () => {
+      if (media.matches) { dialog.current?.close(); setOpen(false); }
+    };
+    media.addEventListener('change', closeAtDesktop);
+    return () => { document.body.style.overflow = previous; media.removeEventListener('change', closeAtDesktop); };
+  }, [open]);
 
   return (
-    <>
-      <header
-        className={`${styles.header} ${scrolled || !isHome ? styles.scrolled : ''}`}
-        role="banner"
-      >
-        <div className={`container ${styles.inner}`}>
-          {/* Logo */}
-          <Link href="/" className={styles.logo} aria-label="ALDi Mobilya Ana Sayfa">
-            <Image
-              src="/logo.png"
-              alt="ALDi Mobilya"
-              width={182}
-              height={68}
-              priority
-              className={styles.logoImg}
-            />
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav className={styles.nav} aria-label="Ana Navigasyon">
-            <ul className={styles.navList}>
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={`${styles.navLink} ${pathname === link.href ? styles.active : ''}`}
-                  >
-                    {link.label}
-                    <span className={styles.navUnderline} />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* WhatsApp CTA (desktop) */}
-          <a
-            href="https://wa.me/905000000000"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`btn btn-gold ${styles.ctaBtn} hide-mobile`}
-            aria-label="WhatsApp ile iletişim"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            WhatsApp
-          </a>
-
-          {/* Hamburger */}
-          <button
-            className={`${styles.hamburger} ${menuOpen ? styles.open : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-          >
-            <span />
-            <span />
-            <span />
+    <header className={styles.header}>
+      <div className={`container ${styles.masthead}`}>
+        <div className={styles.left}>
+          <button ref={trigger} type="button" className={styles.menuButton} onClick={openMenu} aria-label="Menüyü aç" aria-expanded={open} aria-controls="mobile-menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h12" /></svg>
           </button>
+          <span className={styles.signature}>Özenle tasarlandı.<br /><span>Sizin için üretildi.</span></span>
         </div>
-      </header>
-
-      {/* Mobile Menu */}
-      <div
-        id="mobile-menu"
-        className={`${styles.mobileMenu} ${menuOpen ? styles.mobileMenuOpen : ''}`}
-        aria-hidden={!menuOpen}
-      >
-        <nav className={styles.mobileNav} aria-label="Mobil Navigasyon">
-          <ul>
-            {navLinks.map((link, i) => (
-              <li
-                key={link.href}
-                style={{ animationDelay: `${i * 60}ms` }}
-                className={menuOpen ? styles.mobileNavItemVisible : ''}
-              >
-                <Link
-                  href={link.href}
-                  className={`${styles.mobileNavLink} ${pathname === link.href ? styles.mobileActive : ''}`}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-
-          <div className={styles.mobileCta}>
-            <a
-              href="https://wa.me/905000000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-whatsapp"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-              WhatsApp ile Ulaşın
-            </a>
-          </div>
-        </nav>
+        <Link href="/" className={styles.logo} aria-label="ALDi Mobilya — Ana Sayfa">
+          <Image {...imageProps('/logo.jpg')} alt="ALDi Mobilya" width={150} height={150} priority className={styles.logoImg} />
+        </Link>
+        <div className={styles.right}>
+          <a href={contactHref} className={styles.consultation} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>
+            <span>Birlikte tasarlayalım</span><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14" /></svg>
+          </a>
+        </div>
       </div>
-
-      {/* Mobile Menu Backdrop */}
-      {menuOpen && (
-        <div
-          className={styles.backdrop}
-          onClick={() => setMenuOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-    </>
+      <nav className={styles.navigation} aria-label="Ana navigasyon">
+        <ul>{navLinks.map(link => <li key={link.href}><Link href={link.href} aria-current={isActive(link.href) ? 'page' : undefined} className={isActive(link.href) ? styles.active : ''}>{link.label}</Link></li>)}</ul>
+      </nav>
+      <dialog ref={dialog} id="mobile-menu" className={styles.mobileMenu} aria-label="Mobil menü" aria-modal="true" onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) closeMenu(); }}>
+        <div className={styles.menuInner}>
+          <div className={styles.menuTop}><span>ALDi MOBİLYA</span><button type="button" onClick={closeMenu} aria-label="Menüyü kapat"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
+          <nav aria-label="Mobil navigasyon"><ul>{navLinks.map((link, i) => <li key={link.href}><Link href={link.href} onClick={closeMenu} aria-current={isActive(link.href) ? 'page' : undefined}><span>0{i + 1}</span>{link.label}</Link></li>)}</ul></nav>
+          <a className="btn btn-gold" href={contactHref} onClick={closeMenu} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>Bize ulaşın</a>
+          <p className={styles.menuNote}>Yaşam alanınıza zamansız bir dokunuş.</p>
+        </div>
+      </dialog>
+    </header>
   );
 }

@@ -202,15 +202,104 @@
   color: var(--admin-gold);
 }
 
+/* Empty state */
+.emptyBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px;
+  background: var(--admin-card);
+  border: 1px dashed var(--admin-border);
+  border-radius: 12px;
+}
+
+.emptyTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.emptyDesc {
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+/* Loading skeleton */
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.skeletonCard {
+  height: 88px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--admin-card) 25%, rgba(255, 255, 255, 0.04) 50%, var(--admin-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+  border: 1px solid var(--admin-border);
+}
+
+.skeletonBlock {
+  height: 120px;
+  border-radius: 12px;
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.loadingText {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+}
+
+/* Error state */
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 12px;
+}
+
+.errorTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.errorText {
+  font-size: 0.875rem;
+  color: #f87171;
+  word-break: break-word;
+}
+
+.errorActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 1100px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .statsGrid,
+  .skeletonGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 700px) {
   .statsGrid,
-  .actionsGrid {
-    grid-template-columns: 1fr;
-  }
+  .skeletonGrid,
+  .actionsGrid { grid-template-columns: 1fr; }
+
+  .errorActions,
+  .emptyBox { width: 100%; }
+  .errorActions a,
+  .errorActions button { min-height: 44px; flex: 1; justify-content: center; }
 }

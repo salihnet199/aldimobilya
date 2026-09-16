@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import { prisma } from '@aldimobilya/db';
+import MediaPlayer from '@/components/MediaPlayer';
+import { getSiteSettings, getInstagramHref } from '@/lib/site-settings';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -7,23 +9,28 @@ export const metadata: Metadata = {
   description: 'ALDi Mobilya tanıtım videoları ve görsel galeri.',
 };
 
-interface MediaItem {
-  id: string;
-  title: string;
-  url: string;
-  thumbnail?: string;
-}
+// Videos are managed from the admin panel, so the public page must reflect
+// changes immediately instead of serving a cached snapshot.
+export const dynamic = 'force-dynamic';
 
-// TODO: fetch from API
-async function getVideos(): Promise<MediaItem[]> {
-  return [];
+async function getPublicVideos() {
+  try {
+    return await prisma.video.findMany({
+      where: { isPublic: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (err) {
+    console.error('getPublicVideos error:', err);
+    return [];
+  }
 }
 
 export default async function MedyaPage() {
-  const videos = await getVideos();
+  const [videos, settings] = await Promise.all([getPublicVideos(), getSiteSettings()]);
+  const instagramHref = getInstagramHref(settings.instagram);
 
   return (
-    <div style={{ paddingTop: 80 }}>
+    <div className={styles.page}>
       {/* Header */}
       <div className={styles.pageHeader}>
         <div className="container">
@@ -38,43 +45,24 @@ export default async function MedyaPage() {
 
       <div className="container section">
         {videos.length > 0 ? (
-          <div className={styles.grid}>
+          <ul className={styles.grid}>
             {videos.map((video) => (
-              <div key={video.id} className={styles.videoCard}>
-                <div className={styles.videoThumb}>
-                  {video.thumbnail ? (
-                    <Image
-                      src={video.thumbnail}
-                      alt={video.title}
-                      fill
-                      unoptimized
-                      style={{ objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <div className={styles.videoPlaceholder}>
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M8 5v14l11-7z"/>
-                      </svg>
-                    </div>
-                  )}
-                  <div className={styles.playOverlay}>
-                    <div className={styles.playBtn}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z"/>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                <p className={styles.videoTitle}>{video.title}</p>
-              </div>
+              <li key={video.id} className={styles.card}>
+                <MediaPlayer
+                  url={video.url}
+                  title={video.title}
+                  thumbnail={video.thumbnail}
+                />
+                <h2 className={styles.videoTitle}>{video.title}</h2>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : (
           <div className="empty-state">
             <div className="empty-state-icon">
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.8">
-                <polygon points="23 7 16 12 23 17 23 7"/>
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
               </svg>
             </div>
             <h2 className="heading-lg" style={{ marginBottom: 'var(--space-3)' }}>
@@ -84,12 +72,11 @@ export default async function MedyaPage() {
               Tanıtım videolarımız çok yakında burada yayınlanacak.
             </p>
             <a
-              href="https://www.instagram.com/aldimobilya/"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={instagramHref ?? '/iletisim'}
+              {...(instagramHref ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               className="btn btn-outline"
             >
-              Instagram&apos;da Videolarımızı İzle
+              {instagramHref ? 'Instagram Videolarımızı İzle' : 'Bize Ulaşın'}
             </a>
           </div>
         )}

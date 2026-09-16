@@ -1,41 +1,41 @@
 import Link from 'next/link';
-import { prisma } from '@aldimobilya/db';
+import { getSiteSettings, getWhatsAppHref } from '@/lib/site-settings';
 import HeroCarousel from './HeroCarousel';
 import styles from './HeroSection.module.css';
 
 const DEFAULT_TITLE = 'Sonsuz Şıklık';
 const DEFAULT_SUBTITLE = 'Her tasarım, yaşam alanınıza özgün bir karakter ve rafine bir estetik katar.';
 
-async function getHeroContent() {
-  try {
-    const settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
-    const heroImages = Array.isArray(settings?.heroImages) ? (settings.heroImages as string[]) : [];
-    return {
-      title: settings?.heroTitleTr || DEFAULT_TITLE,
-      subtitle: settings?.heroSubtitleTr || DEFAULT_SUBTITLE,
-      images: heroImages,
-    };
-  } catch (err) {
-    console.error('getHeroContent error:', err);
-    return { title: DEFAULT_TITLE, subtitle: DEFAULT_SUBTITLE, images: [] as string[] };
-  }
-}
-
 export default async function HeroSection() {
-  const { title, subtitle, images } = await getHeroContent();
+  const settings = await getSiteSettings();
+  const { images, autoplay, intervalMs } = settings.heroSlideshow;
 
-  // Split into two lines for the signature two-tone headline treatment:
-  // everything but the last word in white, the last word in gold italic.
-  const words = title.trim().split(/\s+/);
-  const lineTwo = words.length > 1 ? words.pop()! : words[0];
-  const lineOne = words.length > 0 ? words.join(' ') : '';
+  const title = settings.heroTitleTr || DEFAULT_TITLE;
+  const subtitle = settings.heroSubtitleTr || DEFAULT_SUBTITLE;
+
+  // Signature two-tone headline: everything but the last word on the first
+  // line, the last word in bronze italic on the second. A single-word title is
+  // rendered once instead of being repeated on both lines.
+  const words = title.trim().split(/\s+/).filter(Boolean);
+  const lastWord = words.length > 0 ? words[words.length - 1] : '';
+  const leadWords = words.slice(0, -1).join(' ');
+
+  const hasImages = images.length > 0;
+  const whatsappHref = getWhatsAppHref(
+    settings.whatsapp,
+    'Merhaba, yatak odası tasarımları hakkında bilgi almak istiyorum.',
+  );
+  const whatsappIsExternal = whatsappHref.startsWith('http');
 
   return (
-    <section className={styles.hero} aria-label="Ana Tanıtım">
+    <section
+      className={`${styles.hero} ${hasImages ? '' : styles.heroPlain}`}
+      aria-label="Ana Tanıtım"
+    >
       {/* Background Media */}
       <div className={styles.media}>
-        {images.length > 0 ? (
-          <HeroCarousel images={images} />
+        {hasImages ? (
+          <HeroCarousel images={images} autoplay={autoplay} intervalMs={intervalMs} />
         ) : (
           <div className={styles.gradientFallback} aria-hidden="true" />
         )}
@@ -48,14 +48,12 @@ export default async function HeroSection() {
       <div className={`container ${styles.content}`}>
         <div className={styles.textBlock}>
           {/* Eyebrow */}
-          <span className={`caption text-gold ${styles.eyebrow}`}>
-            Lüks Yatak Odası Tasarımları
-          </span>
+          <span className={`caption ${styles.eyebrow}`}>Lüks Yatak Odası Tasarımları</span>
 
           {/* Headline */}
           <h1 className={`display-xl ${styles.headline}`}>
-            {lineOne && <span className={styles.lineOne}>{lineOne}</span>}
-            <span className={`text-gold ${styles.lineTwo}`}>{lineTwo}</span>
+            {leadWords && <span className={styles.lineOne}>{leadWords}</span>}
+            {lastWord && <span className={styles.lineTwo}>{lastWord}</span>}
           </h1>
 
           {/* Sub */}
@@ -70,9 +68,8 @@ export default async function HeroSection() {
               </svg>
             </Link>
             <a
-              href="https://wa.me/905000000000"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={whatsappHref}
+              {...(whatsappIsExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               className="btn btn-outline"
             >
               WhatsApp ile Bilgi Al
@@ -83,7 +80,7 @@ export default async function HeroSection() {
         {/* Scroll Indicator */}
         <div className={styles.scrollIndicator} aria-hidden="true">
           <span className={styles.scrollLine} />
-          <span className={`caption text-muted ${styles.scrollLabel}`}>Kaydır</span>
+          <span className={`caption ${styles.scrollLabel}`}>Kaydır</span>
         </div>
       </div>
 

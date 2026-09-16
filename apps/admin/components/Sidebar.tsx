@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { publicSiteUrl } from '@/lib/public-site';
 import styles from './Sidebar.module.css';
 
 const navItems = [
@@ -53,6 +54,9 @@ export default function Sidebar({
   user?: { name?: string | null; email?: string | null } | null;
 }) {
   const pathname = usePathname();
+  // The admin app has its own origin, so a root-relative "/" would open the
+  // admin root (which redirects to /dashboard). Link to the public site.
+  const publicSite = publicSiteUrl();
 
   return (
     <aside className={styles.sidebar}>
@@ -96,10 +100,11 @@ export default function Sidebar({
           </div>
         )}
         <a
-          href="/"
+          href={publicSite}
           target="_blank"
           rel="noopener noreferrer"
           className={styles.viewSite}
+          aria-label="Siteyi Görüntüle (yeni sekmede açılır)"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -110,8 +115,7 @@ export default function Sidebar({
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: '/login' })}
-          className={styles.viewSite}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+          className={styles.signOutBtn}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>

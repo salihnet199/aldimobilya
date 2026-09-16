@@ -52,3 +52,10 @@ next-env.d.ts
 .vercel
 .env*
 !.env.example
+
+# Local AI / Tool artifacts
+.kilo/
+.workbuddy-ai/
+outputs/
+*.patch
+*.bundle

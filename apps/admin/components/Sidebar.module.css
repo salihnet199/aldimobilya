@@ -152,3 +152,97 @@
   background: rgba(255, 255, 255, 0.04);
   color: var(--admin-text-muted);
 }
+
+.viewSite svg {
+  flex-shrink: 0;
+}
+
+.signOutBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--admin-text-faint);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.signOutBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--admin-text-muted);
+}
+
+.signOutBtn svg {
+  flex-shrink: 0;
+}
+
+/* Narrow screens: the fixed sidebar would cover the content, so it becomes a
+   compact top bar with a horizontally scrollable nav. Kept in sync with the
+   matching breakpoint in DashboardLayout.module.css. */
+@media (max-width: 900px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--admin-border);
+  }
+
+  .brand {
+    height: auto;
+    padding: 10px 16px;
+  }
+
+  .nav {
+    flex: none;
+    padding: 6px 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .nav ul {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .navItem {
+    margin: 0;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  .navLabel {
+    flex: none;
+  }
+
+  .activeBar {
+    display: none;
+  }
+
+  .bottom {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .viewSite,
+  .signOutBtn {
+    width: auto;
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+}
