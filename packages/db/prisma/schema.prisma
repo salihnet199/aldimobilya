@@ -67,6 +67,7 @@ model SiteSettings {
   youtube         String?
   heroImage       String?
   heroVideo       String?
+  heroImages      Json?    // Ordered array of image URLs for the homepage hero slider
   heroTitleTr     String?
   heroSubtitleTr  String?
   metaDescTr      String?

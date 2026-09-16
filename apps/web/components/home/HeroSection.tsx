@@ -1,37 +1,44 @@
-'use client';
-
-import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { prisma } from '@aldimobilya/db';
+import HeroCarousel from './HeroCarousel';
 import styles from './HeroSection.module.css';
 
-export default function HeroSection() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+const DEFAULT_TITLE = 'Sonsuz Şıklık';
+const DEFAULT_SUBTITLE = 'Her tasarım, yaşam alanınıza özgün bir karakter ve rafine bir estetik katar.';
 
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // autoplay blocked — video stays on first frame
-      });
-    }
-  }, []);
+async function getHeroContent() {
+  try {
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
+    const heroImages = Array.isArray(settings?.heroImages) ? (settings.heroImages as string[]) : [];
+    return {
+      title: settings?.heroTitleTr || DEFAULT_TITLE,
+      subtitle: settings?.heroSubtitleTr || DEFAULT_SUBTITLE,
+      images: heroImages,
+    };
+  } catch (err) {
+    console.error('getHeroContent error:', err);
+    return { title: DEFAULT_TITLE, subtitle: DEFAULT_SUBTITLE, images: [] as string[] };
+  }
+}
+
+export default async function HeroSection() {
+  const { title, subtitle, images } = await getHeroContent();
+
+  // Split into two lines for the signature two-tone headline treatment:
+  // everything but the last word in white, the last word in gold italic.
+  const words = title.trim().split(/\s+/);
+  const lineTwo = words.length > 1 ? words.pop()! : words[0];
+  const lineOne = words.length > 0 ? words.join(' ') : '';
 
   return (
     <section className={styles.hero} aria-label="Ana Tanıtım">
-      {/* Background Video / Image */}
+      {/* Background Media */}
       <div className={styles.media}>
-        {/* When a real video is available, replace the src below */}
-        {/* <video
-          ref={videoRef}
-          className={styles.video}
-          src="/hero-video.mp4"
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster="/hero-poster.jpg"
-        /> */}
-        {/* Fallback gradient until real media is added */}
-        <div className={styles.gradientFallback} aria-hidden="true" />
+        {images.length > 0 ? (
+          <HeroCarousel images={images} />
+        ) : (
+          <div className={styles.gradientFallback} aria-hidden="true" />
+        )}
       </div>
 
       {/* Gradient Overlay */}
@@ -47,14 +54,12 @@ export default function HeroSection() {
 
           {/* Headline */}
           <h1 className={`display-xl ${styles.headline}`}>
-            <span className={styles.lineOne}>Sonsuz</span>
-            <span className={`text-gold ${styles.lineTwo}`}>Şıklık</span>
+            {lineOne && <span className={styles.lineOne}>{lineOne}</span>}
+            <span className={`text-gold ${styles.lineTwo}`}>{lineTwo}</span>
           </h1>
 
           {/* Sub */}
-          <p className={`body-lg ${styles.sub}`}>
-            Her tasarım, yaşam alanınıza özgün bir karakter ve rafine bir estetik katar.
-          </p>
+          <p className={`body-lg ${styles.sub}`}>{subtitle}</p>
 
           {/* CTAs */}
           <div className={styles.ctas}>

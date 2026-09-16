@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   z-index: var(--z-header);
-  padding-block: 20px;
+  padding-block: 28px;
   transition: background var(--transition-base), padding var(--transition-base), box-shadow var(--transition-base);
 }
 
@@ -33,9 +33,14 @@
 }
 
 .logoImg {
-  height: 44px;
+  height: 68px;
   width: auto;
   object-fit: contain;
+  transition: height var(--transition-base);
+}
+
+.header.scrolled .logoImg {
+  height: 46px;
 }
 
 /* Desktop Nav */

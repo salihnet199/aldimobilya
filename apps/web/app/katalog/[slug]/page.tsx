@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { prisma } from '@aldimobilya/db';
+import type { RoomSpecs } from '@aldimobilya/types';
 import styles from './page.module.css';
 
 interface Props {
@@ -47,7 +48,7 @@ export default async function RoomDetailPage({ params }: Props) {
   const displayHero = room.heroImage || room.images[0]?.url;
 
   // Cast or inspect specs
-  const specs = (room.specs as Record<string, any>) || {};
+  const specs = (room.specs as RoomSpecs | null) ?? {};
 
   return (
     <div className={styles.page}>

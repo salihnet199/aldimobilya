@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import styles from './Sidebar.module.css';
 
 const navItems = [
@@ -46,7 +47,11 @@ const navItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  user,
+}: {
+  user?: { name?: string | null; email?: string | null } | null;
+}) {
   const pathname = usePathname();
 
   return (
@@ -85,6 +90,11 @@ export default function Sidebar() {
 
       {/* Bottom */}
       <div className={styles.bottom}>
+        {user && (
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>{user.name ?? user.email}</span>
+          </div>
+        )}
         <a
           href="/"
           target="_blank"
@@ -97,6 +107,18 @@ export default function Sidebar() {
           </svg>
           Siteyi Görüntüle
         </a>
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: '/login' })}
+          className={styles.viewSite}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Çıkış Yap
+        </button>
       </div>
     </aside>
   );

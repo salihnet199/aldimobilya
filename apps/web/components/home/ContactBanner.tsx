@@ -14,7 +14,7 @@ export default function ContactBanner() {
               <em className="text-gold">Birlikte Tasarlayalım</em>
             </h2>
             <p className="body-lg text-muted" style={{ maxWidth: 500 }}>
-              Özel tasarım talepleriniz ve fiyat bilgisi için WhatsApp'tan bize ulaşın.
+              Özel tasarım talepleriniz ve fiyat bilgisi için WhatsApp&apos;tan bize ulaşın.
               Uzman ekibimiz size en kısa sürede yanıt verir.
             </p>
           </div>

@@ -2,25 +2,36 @@ import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'e8kfofqy',
-  api_key: process.env.CLOUDINARY_API_KEY || '838895849946721',
-  api_secret: process.env.CLOUDINARY_API_SECRET || '8SZEVlo9zB0WCvzZkGzwj_dpicI',
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export async function GET(request: Request) {
   try {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.error('[GET /api/upload/sign] Missing Cloudinary environment variables');
+      return NextResponse.json(
+        { error: 'Sunucu yapılandırma hatası / Server misconfiguration' },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const folder = searchParams.get('folder') || 'aldimobilya/rooms';
     const timestamp = Math.round(new Date().getTime() / 1000);
 
-    const apiSecret = process.env.CLOUDINARY_API_SECRET || '8SZEVlo9zB0WCvzZkGzwj_dpicI';
     const signature = cloudinary.utils.api_sign_request({ folder, timestamp }, apiSecret);
 
     return NextResponse.json({
       signature,
       timestamp,
-      apiKey: process.env.CLOUDINARY_API_KEY || '838895849946721',
-      cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'e8kfofqy',
+      apiKey,
+      cloudName,
       folder,
     });
   } catch (err: unknown) {

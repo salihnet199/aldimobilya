@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import styles from './page.module.css';
 
 interface VideoItem {
@@ -77,7 +78,25 @@ export default function VideolarPage() {
   }
 
   useEffect(() => {
-    fetchVideos();
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/videos');
+        const data = await res.json();
+        if (!cancelled && res.ok && data.videos) {
+          setVideos(data.videos);
+        }
+      } catch (err) {
+        console.error('Videolar alınamadı:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleVideoFileUpload(files: FileList | null) {
@@ -175,7 +194,7 @@ export default function VideolarPage() {
       if (res.ok) {
         setVideos((prev) => prev.filter((v) => v.id !== id));
       }
-    } catch (err) {
+    } catch {
       alert('Video silinirken hata oluştu.');
     }
   }
@@ -327,7 +346,14 @@ export default function VideolarPage() {
                 <tr key={vid.id}>
                   <td>
                     {vid.thumbnail ? (
-                      <img src={vid.thumbnail} alt={vid.title} className={styles.videoThumb} />
+                      <Image
+                        src={vid.thumbnail}
+                        alt={vid.title}
+                        width={72}
+                        height={48}
+                        unoptimized
+                        className={styles.videoThumb}
+                      />
                     ) : (
                       <div className={styles.videoThumb} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
                         ▶

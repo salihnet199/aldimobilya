@@ -14,6 +14,48 @@ interface Props {
   onChange?: (images: UploadedImage[]) => void;
   maxFiles?: number;
   folder?: string;
+  /** Show up/down controls to reorder images (e.g. for a homepage slider sequence). */
+  reorderable?: boolean;
+}
+
+async function uploadFileDirect(file: File, folder: string): Promise<UploadedImage> {
+  // 1. Direct client upload to Cloudinary (bypasses the platform's request body
+  //    size limit and is faster for large photography).
+  try {
+    const signRes = await fetch(`/api/upload/sign?folder=${encodeURIComponent(folder)}`);
+    if (signRes.ok) {
+      const { signature, timestamp, apiKey, cloudName } = await signRes.json();
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('api_key', apiKey);
+      fd.append('timestamp', String(timestamp));
+      fd.append('signature', signature);
+      fd.append('folder', folder);
+
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+        method: 'POST',
+        body: fd,
+      });
+      const cloudData = await cloudRes.json();
+      if (cloudRes.ok && cloudData.secure_url) {
+        return { url: cloudData.secure_url, publicId: cloudData.public_id || '' };
+      }
+    }
+  } catch {
+    // fall through to the server-side route below
+  }
+
+  // 2. Fallback: internal Next.js API route (server-side Cloudinary upload).
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('folder', folder);
+  const res = await fetch('/api/upload', { method: 'POST', body: fd });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `${file.name} yüklenemedi.`);
+  }
+  const data = await res.json();
+  return { url: data.url, publicId: data.publicId || '' };
 }
 
 export default function ImageUploader({
@@ -21,6 +63,7 @@ export default function ImageUploader({
   onChange,
   maxFiles = 10,
   folder = 'aldimobilya/rooms',
+  reorderable = false,
 }: Props) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -39,19 +82,13 @@ export default function ImageUploader({
       setError('');
 
       try {
-        const results = await Promise.all(
-          toUpload.map(async (file) => {
-            const fd = new FormData();
-            fd.append('file', file);
-            fd.append('folder', folder);
-            const res = await fetch('/api/upload', { method: 'POST', body: fd });
-            if (!res.ok) throw new Error(await res.text());
-            return res.json() as Promise<UploadedImage>;
-          }),
-        );
+        const results: UploadedImage[] = [];
+        for (const file of toUpload) {
+          results.push(await uploadFileDirect(file, folder));
+        }
         onChange?.([...value, ...results]);
-      } catch {
-        setError('Yükleme başarısız. Tekrar deneyin.');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Yükleme başarısız. Tekrar deneyin.');
       } finally {
         setUploading(false);
       }
@@ -61,6 +98,14 @@ export default function ImageUploader({
 
   const handleRemove = (publicId: string) => {
     onChange?.(value.filter((img) => img.publicId !== publicId));
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= value.length) return;
+    const next = [...value];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChange?.(next);
   };
 
   return (
@@ -85,7 +130,29 @@ export default function ImageUploader({
               >
                 ×
               </button>
-              {i === 0 && <span className={styles.heroBadge}>Kapak</span>}
+              {i === 0 && !reorderable && <span className={styles.heroBadge}>Kapak</span>}
+              {reorderable && value.length > 1 && (
+                <div className={styles.reorderControls}>
+                  <button
+                    type="button"
+                    className={styles.reorderBtn}
+                    onClick={() => moveImage(i, -1)}
+                    disabled={i === 0}
+                    aria-label="Sola taşı"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.reorderBtn}
+                    onClick={() => moveImage(i, 1)}
+                    disabled={i === value.length - 1}
+                    aria-label="Sağa taşı"
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

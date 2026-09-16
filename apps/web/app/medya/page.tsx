@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -42,7 +43,13 @@ export default async function MedyaPage() {
               <div key={video.id} className={styles.videoCard}>
                 <div className={styles.videoThumb}>
                   {video.thumbnail ? (
-                    <img src={video.thumbnail} alt={video.title} loading="lazy" />
+                    <Image
+                      src={video.thumbnail}
+                      alt={video.title}
+                      fill
+                      unoptimized
+                      style={{ objectFit: 'cover' }}
+                    />
                   ) : (
                     <div className={styles.videoPlaceholder}>
                       <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

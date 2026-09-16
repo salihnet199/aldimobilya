@@ -2,13 +2,34 @@ import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'e8kfofqy',
-  api_key: process.env.CLOUDINARY_API_KEY || '838895849946721',
-  api_secret: process.env.CLOUDINARY_API_SECRET || '8SZEVlo9zB0WCvzZkGzwj_dpicI',
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+interface CloudinaryUploadResult {
+  secure_url: string;
+  public_id: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  resource_type: string;
+}
 
 export async function POST(request: Request) {
   try {
+    if (
+      !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET
+    ) {
+      console.error('[POST /api/upload] Missing Cloudinary environment variables');
+      return NextResponse.json(
+        { error: 'Sunucu yapılandırma hatası / Server misconfiguration' },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const folder = (formData.get('folder') as string) ?? 'aldimobilya/rooms';
@@ -24,7 +45,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(bytes);
 
     // Upload via stream to Cloudinary (reliable for memory & avoids massive base64 strings)
-    const result = await new Promise<any>((resolve, reject) => {
+    const result = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
@@ -32,8 +53,8 @@ export async function POST(request: Request) {
           ...(isVideo ? {} : { quality: 'auto', fetch_format: 'auto' }),
         },
         (error, uploadResult) => {
-          if (error) reject(error);
-          else resolve(uploadResult);
+          if (error || !uploadResult) reject(error ?? new Error('Empty Cloudinary response'));
+          else resolve(uploadResult as CloudinaryUploadResult);
         }
       );
       uploadStream.end(buffer);

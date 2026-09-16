@@ -19,15 +19,20 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  // Close the mobile menu when the route changes. Adjusted during render
+  // (per React's guidance) instead of in an effect, to avoid an extra
+  // render pass every time the pathname changes.
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setMenuOpen(false);
+  }
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
@@ -48,8 +53,8 @@ export default function Header() {
             <Image
               src="/logo.png"
               alt="ALDi Mobilya"
-              width={140}
-              height={52}
+              width={182}
+              height={68}
               priority
               className={styles.logoImg}
             />

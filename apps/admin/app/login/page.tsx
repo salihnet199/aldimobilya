@@ -1,9 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import styles from './page.module.css';
 
-export default function LoginPage() {
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -11,10 +15,26 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    // TODO: wire up to NextAuth signIn when credentials are configured
-    await new Promise((r) => setTimeout(r, 900));
-    setError('Veritabanı henüz bağlı değil. .env.local dosyasını yapılandırın.');
-    setLoading(false);
+
+    const formData = new FormData(e.currentTarget);
+    const email = String(formData.get('email') ?? '');
+    const password = String(formData.get('password') ?? '');
+
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setError('E-posta veya parola hatalı.');
+      setLoading(false);
+      return;
+    }
+
+    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+    router.push(callbackUrl);
+    router.refresh();
   }
 
   return (
@@ -35,6 +55,7 @@ export default function LoginPage() {
             <input
               className="admin-input"
               type="email"
+              name="email"
               placeholder="admin@aldimobilya.com"
               required
               autoFocus
@@ -45,6 +66,7 @@ export default function LoginPage() {
             <input
               className="admin-input"
               type="password"
+              name="password"
               placeholder="••••••••"
               required
             />
@@ -78,5 +100,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

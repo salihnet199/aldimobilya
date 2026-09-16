@@ -3,24 +3,22 @@
  * Seed: creates the initial admin user.
  * Run: pnpm --filter @aldimobilya/db db:seed
  *
- * Change the email/password below before running!
+ * Set ADMIN_EMAIL / ADMIN_NAME / ADMIN_PASSWORD env vars before running,
+ * or edit the fallback constants below (not recommended for production —
+ * this file is committed to the repo).
  */
 
 import { PrismaClient } from '@prisma/client';
-import { createHash } from 'node:crypto';
+import bcrypt from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
 
 const prisma = new PrismaClient();
 
-// ─── Change these before running ───────────────────────────────────────────────
-const ADMIN_EMAIL = 'admin@aldimobilya.com';
-const ADMIN_NAME  = 'ALDi Admin';
-const ADMIN_PASS  = 'AldI2024!';          // ← Change this to a strong password!
-// ───────────────────────────────────────────────────────────────────────────────
-
-/** Simple password hash — replace with bcrypt when NextAuth is wired */
-function hashPassword(pw: string): string {
-  return createHash('sha256').update(pw + 'aldi-salt-2024').digest('hex');
-}
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@aldimobilya.com';
+const ADMIN_NAME = process.env.ADMIN_NAME ?? 'ALDi Admin';
+// Generate a random password if none is provided, instead of shipping a
+// guessable default in source control.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? randomBytes(9).toString('base64url');
 
 async function main() {
   console.log('🌱 Seeding database...');
@@ -41,13 +39,14 @@ async function main() {
   console.log('✅ Site settings created');
 
   // Admin user
+  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
   const user = await prisma.user.upsert({
     where: { email: ADMIN_EMAIL },
     update: {},
     create: {
       email: ADMIN_EMAIL,
       name: ADMIN_NAME,
-      password: hashPassword(ADMIN_PASS),
+      password: passwordHash,
       role: 'ADMIN',
     },
   });
@@ -55,7 +54,11 @@ async function main() {
 
   console.log('\n🎉 Seed complete!');
   console.log(`   Email:    ${ADMIN_EMAIL}`);
-  console.log(`   Password: ${ADMIN_PASS}`);
+  if (!process.env.ADMIN_PASSWORD) {
+    console.log(`   Password: ${ADMIN_PASSWORD}  (auto-generated — save it now, it will not be shown again)`);
+  } else {
+    console.log('   Password: (set from ADMIN_PASSWORD env var)');
+  }
   console.log('\n⚠️  Change your password after first login!');
 }
 

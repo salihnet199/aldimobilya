@@ -117,6 +117,23 @@
 .bottom {
   padding: 16px;
   border-top: 1px solid var(--admin-border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.userInfo {
+  padding: 8px 12px 4px;
+  font-size: 0.75rem;
+  color: var(--admin-text-faint);
+  overflow: hidden;
+}
+
+.userName {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .viewSite {

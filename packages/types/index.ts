@@ -56,6 +56,7 @@ export interface SiteSettings {
   youtube?: string;
   heroImage?: string;
   heroVideo?: string;
+  heroImages?: string[];
   heroTitleTr?: string;
   heroSubtitleTr?: string;
   metaDesc?: string;

@@ -1,37 +1,27 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@aldimobilya/db';
 
+// Read-only: the public site never accepts writes to settings.
+// Updates happen exclusively through the authenticated admin app.
 export async function GET() {
   try {
-    // const settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
-    // return NextResponse.json({ settings: settings ?? {} });
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
 
     return NextResponse.json({
       settings: {
-        whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '+905000000000',
-        instagram: 'aldimobilya',
+        whatsapp: settings?.whatsapp ?? process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '+905000000000',
+        instagram: settings?.instagram ?? 'aldimobilya',
+        facebook: settings?.facebook ?? null,
+        tiktok: settings?.tiktok ?? null,
+        youtube: settings?.youtube ?? null,
+        heroTitleTr: settings?.heroTitleTr ?? null,
+        heroSubtitleTr: settings?.heroSubtitleTr ?? null,
+        heroImages: settings?.heroImages ?? [],
+        elfSightCode: settings?.elfSightCode ?? null,
       },
     });
   } catch (err) {
     console.error('[GET /api/settings]', err);
-    return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
-    const body = await request.json();
-    // TODO: Auth check
-    // const settings = await prisma.siteSettings.upsert({
-    //   where: { id: 'main' },
-    //   update: body,
-    //   create: { id: 'main', ...body },
-    // });
-    // return NextResponse.json({ settings });
-
-    void body;
-    return NextResponse.json({ error: 'Veritabanı henüz bağlı değil' }, { status: 503 });
-  } catch (err) {
-    console.error('[PUT /api/settings]', err);
     return NextResponse.json({ error: 'Sunucu hatası' }, { status: 500 });
   }
 }
