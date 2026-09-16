@@ -42,6 +42,34 @@ const EMPTY_SETTINGS: SettingsState = {
   metaDescTr: '',
 };
 
+type SettingsFetchResult =
+  | { kind: 'ok'; settings: Record<string, unknown> }
+  | { kind: 'error'; message: string };
+
+async function fetchSettingsData(signal?: AbortSignal): Promise<SettingsFetchResult> {
+  try {
+    const res = await fetch('/api/settings', { signal, cache: 'no-store' });
+    if (!res.ok) {
+      const message = await readErrorMessage(res, 'Ayarlar yüklenemedi');
+      return { kind: 'error', message };
+    }
+    const data: unknown = await res.json();
+    const settings = isRecord(data) && isRecord(data.settings) ? data.settings : null;
+    if (!settings) {
+      return { kind: 'error', message: 'Geçersiz ayarlar yanıtı.' };
+    }
+    return { kind: 'ok', settings };
+  } catch (err) {
+    if (signal?.aborted) {
+      return { kind: 'error', message: 'ABORTED' };
+    }
+    return {
+      kind: 'error',
+      message: err instanceof Error ? `Bağlantı hatası: ${err.message}` : 'Ayarlar yüklenemedi.',
+    };
+  }
+}
+
 export default function AyarlarPage() {
   const [form, setForm] = useState<SettingsState>(EMPTY_SETTINGS);
   const [hero, setHero] = useState<HeroSlideshowSettings>(() => normalizeHeroSettings(null));
@@ -59,79 +87,69 @@ export default function AyarlarPage() {
   const readOnly = roleLoading || !canWrite;
   const locked = readOnly || loadFailed;
 
-  // Guards against a stale response overwriting a newer one (and against
-  // setting state after unmount).
-  const loadSeq = useRef(0);
   const loadController = useRef<AbortController | null>(null);
   const saveController = useRef<AbortController | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Initial loading state is established by useState, not by the effect.
-  // Retry UI transitions belong to the click handler below.
-  const loadSettings = useCallback(async () => {
-    const seq = ++loadSeq.current;
-    loadController.current?.abort();
-    const controller = new AbortController();
-    loadController.current = controller;
-    const isCurrent = () => !controller.signal.aborted && seq === loadSeq.current;
-
-    try {
-      const res = await fetch('/api/settings', { signal: controller.signal, cache: 'no-store' });
-      if (!isCurrent()) return;
-
-      if (!res.ok) {
-        const message = await readErrorMessage(res, 'Ayarlar yüklenemedi');
-        if (!isCurrent()) return;
-        setError(message);
-        setLoadFailed(true);
-        return;
-      }
-
-      const data: unknown = await res.json();
-      if (!isCurrent()) return;
-
-      const settings = isRecord(data) ? data.settings : null;
-      if (!isRecord(settings)) throw new Error('Geçersiz ayarlar yanıtı.');
-      setForm({
-        whatsapp: typeof settings.whatsapp === 'string' ? settings.whatsapp : '',
-        phone: typeof settings.phone === 'string' ? settings.phone : '',
-        email: typeof settings.email === 'string' ? settings.email : '',
-        address: typeof settings.address === 'string' ? settings.address : '',
-        instagram: typeof settings.instagram === 'string' ? settings.instagram : '',
-        facebook: typeof settings.facebook === 'string' ? settings.facebook : '',
-        tiktok: typeof settings.tiktok === 'string' ? settings.tiktok : '',
-        youtube: typeof settings.youtube === 'string' ? settings.youtube : '',
-        heroTitleTr: typeof settings.heroTitleTr === 'string' ? settings.heroTitleTr : '',
-        heroSubtitleTr: typeof settings.heroSubtitleTr === 'string' ? settings.heroSubtitleTr : '',
-        elfSightCode: typeof settings.elfSightCode === 'string' ? settings.elfSightCode : '',
-        metaDescTr: typeof settings.metaDescTr === 'string' ? settings.metaDescTr : '',
-      });
-      // Preserve both the legacy array and full slideshow response contracts.
-      setHero(normalizeHeroSettings(settings.heroSlideshow ?? settings.heroImages));
-    } catch (err) {
-      if (!isCurrent()) return;
-      setError(err instanceof Error ? `Bağlantı hatası: ${err.message}` : 'Ayarlar yüklenemedi.');
-      setLoadFailed(true);
-    } finally {
-      if (isCurrent()) setLoading(false);
+  const applySettings = useCallback((result: SettingsFetchResult) => {
+    if (result.kind === 'error' && result.message === 'ABORTED') {
+      return;
     }
+    if (result.kind === 'ok') {
+      const s = result.settings;
+      setForm({
+        whatsapp: typeof s.whatsapp === 'string' ? s.whatsapp : '',
+        phone: typeof s.phone === 'string' ? s.phone : '',
+        email: typeof s.email === 'string' ? s.email : '',
+        address: typeof s.address === 'string' ? s.address : '',
+        instagram: typeof s.instagram === 'string' ? s.instagram : '',
+        facebook: typeof s.facebook === 'string' ? s.facebook : '',
+        tiktok: typeof s.tiktok === 'string' ? s.tiktok : '',
+        youtube: typeof s.youtube === 'string' ? s.youtube : '',
+        heroTitleTr: typeof s.heroTitleTr === 'string' ? s.heroTitleTr : '',
+        heroSubtitleTr: typeof s.heroSubtitleTr === 'string' ? s.heroSubtitleTr : '',
+        elfSightCode: typeof s.elfSightCode === 'string' ? s.elfSightCode : '',
+        metaDescTr: typeof s.metaDescTr === 'string' ? s.metaDescTr : '',
+      });
+      setHero(normalizeHeroSettings(s.heroSlideshow ?? s.heroImages));
+      setError('');
+      setLoadFailed(false);
+    } else {
+      setError(result.message);
+      setLoadFailed(true);
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    void loadSettings();
+    const controller = new AbortController();
+    loadController.current = controller;
+
+    (async () => {
+      const result = await fetchSettingsData(controller.signal);
+      if (!controller.signal.aborted) {
+        applySettings(result);
+      }
+    })();
+
     return () => {
-      loadSeq.current += 1;
-      loadController.current?.abort();
+      controller.abort();
       saveController.current?.abort();
       if (savedTimer.current) clearTimeout(savedTimer.current);
     };
-  }, [loadSettings]);
+  }, [applySettings]);
 
-  function retryLoad() {
+  async function retryLoad() {
     setLoading(true);
     setError('');
     setLoadFailed(false);
-    void loadSettings();
+    const controller = new AbortController();
+    loadController.current?.abort();
+    loadController.current = controller;
+    const result = await fetchSettingsData(controller.signal);
+    if (!controller.signal.aborted) {
+      applySettings(result);
+    }
   }
 
   function update<K extends keyof SettingsState>(key: K, value: SettingsState[K]) {
