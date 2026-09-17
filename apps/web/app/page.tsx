@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/seo';
 import HeroSection from '@/components/home/HeroSection';
 import FeaturedRooms from '@/components/home/FeaturedRooms';
+import WhyUs from '@/components/home/WhyUs';
 import CategoryGroups from '@/components/home/CategoryGroups';
 import LatestRooms from '@/components/home/LatestRooms';
 import LatestVideos from '@/components/home/LatestVideos';
@@ -20,6 +21,7 @@ export default function HomePage() {
     <>
       <HeroSection />
       <FeaturedRooms />
+      <WhyUs />
       <CategoryGroups />
       <LatestRooms />
       <LatestVideos />
