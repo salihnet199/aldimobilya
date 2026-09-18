@@ -72,7 +72,7 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
         aria-label={`${name} — ${safeIndex + 1}. görseli tam ekran göster`}
       >
         <Image
-          {...imageProps(active.url)}
+          {...imageProps(active.url, 1800)}
           alt={active.alt || name}
           fill
           priority
@@ -104,7 +104,7 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
                 aria-controls={`${baseId}-main`}
               >
                 <Image
-                  {...imageProps(img.url)}
+                  {...imageProps(img.url, 400)}
                   alt=""
                   width={180}
                   height={180}
@@ -133,7 +133,7 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
               className={`${styles.lightboxSlide} ${i === safeIndex ? styles.lightboxSlideActive : ''}`}
             >
               <Image
-                {...imageProps(img.url)}
+                {...imageProps(img.url, 2400)}
                 alt={img.alt || name}
                 fill
                 sizes="100vw"

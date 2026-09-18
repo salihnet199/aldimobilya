@@ -87,7 +87,7 @@ export default function HeroCarousel({
           className={`${styles.slide} ${i === active ? styles.slideActive : ''}`}
         >
           <Image
-            {...imageProps(src)}
+            {...imageProps(src, 2200)}
             alt=""
             fill
             priority={i === 0}

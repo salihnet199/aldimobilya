@@ -77,7 +77,7 @@ export default async function KatalogPage({
                   aria-label={`${displayName} — detayları gör`}
                 >
                   <Image
-                    {...imageProps(displayImage)}
+                    {...imageProps(displayImage, 1600)}
                     alt={displayName}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
