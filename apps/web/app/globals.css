@@ -1,32 +1,32 @@
 /* =============================================================================
    ALDi Mobilya — Global Design System
-   Premium minimal — ivory / ink / restrained bronze
+   True brand identity, sampled directly from the logo: black + gold/brass.
    Fonts are loaded through next/font in app/layout.tsx and exposed as
    --font-cormorant / --font-inter. No @import here (that would double-load).
    ============================================================================= */
 
 /* --- CSS Variables --- */
 :root {
-  /* Surfaces & ink */
-  --ivory:          #f7f5f0;
-  --ivory-soft:     #f1eee6;
-  --surface:        #ffffff;
-  --surface-alt:    #efeae0;
+  /* Surfaces & ink — dark, matching the logo's true black background */
+  --ivory:          #0c0a08;
+  --ivory-soft:     #161310;
+  --surface:        #17130f;
+  --surface-alt:    #1f1a14;
 
-  --ink:            #262923;
-  --ink-soft:       #5d6754;
-  --ink-muted:      #8a8578;
-  --ink-faint:      #a8a294;
+  --ink:            #f5efe2;
+  --ink-soft:       #cdbfa8;
+  --ink-muted:      #9c8f79;
+  --ink-faint:      #6b6152;
 
-  --line:           rgba(38, 41, 35, 0.12);
+  --line:           rgba(245, 239, 226, 0.10);
 
-  /* Restrained bronze accent */
-  --bronze:         #93703f;
-  --bronze-light:   #b08a52;
-  --bronze-dark:    #7d5f34;
-  --bronze-muted:   rgba(147, 112, 63, 0.10);
-  --bronze-glow:    rgba(147, 112, 63, 0.08);
-  --line-bronze:    rgba(147, 112, 63, 0.28);
+  /* Gold/brass accent — sampled from the actual logo file (logo.png) */
+  --bronze:         #b8863c;
+  --bronze-light:   #e8cf9a;
+  --bronze-dark:    #7c4c0a;
+  --bronze-muted:   rgba(184, 134, 60, 0.12);
+  --bronze-glow:    rgba(184, 134, 60, 0.10);
+  --line-bronze:    rgba(184, 134, 60, 0.35);
 
   /* Text sitting directly on photography (never inverted globally) */
   --on-media:        #ffffff;
@@ -53,9 +53,9 @@
   --gold-glow:      var(--bronze-glow);
 
   --white:          var(--ink);
-  --gray-100:       #262923;
-  --gray-200:       #3a3d36;
-  --gray-300:       #6b6f66;
+  --gray-100:       #f5efe2;
+  --gray-200:       #ded2ba;
+  --gray-300:       #cdbfa8;
   --gray-400:       var(--ink-soft);
   --gray-500:       var(--ink-muted);
   --gray-600:       var(--ink-faint);
@@ -87,9 +87,9 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-bronze: 0 0 40px rgba(147, 112, 63, 0.12);
-  --shadow-card: 0 6px 24px rgba(38, 41, 35, 0.06);
-  --shadow-card-hover: 0 14px 44px rgba(38, 41, 35, 0.12), 0 0 0 1px var(--line-bronze);
+  --shadow-bronze: 0 0 40px rgba(184, 134, 60, 0.18);
+  --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--line-bronze);
 
   /* Transitions */
   --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -251,6 +251,7 @@ ul, ol {
 
 /* --- Buttons --- */
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -264,6 +265,27 @@ ul, ol {
   transition: all var(--transition-base);
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Premium light-sweep on hover — a restrained luxury micro-interaction,
+   not a bounce or a gimmick. Disabled entirely for reduced-motion users. */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.btn:hover::before {
+  transform: translateX(120%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn::before { display: none; }
 }
 
 .btn-gold {
@@ -275,7 +297,7 @@ ul, ol {
 .btn-gold:hover {
   background: linear-gradient(135deg, var(--bronze-light), var(--bronze));
   transform: translateY(-1px);
-  box-shadow: 0 8px 32px rgba(147, 112, 63, 0.28);
+  box-shadow: 0 8px 32px rgba(184, 134, 60, 0.28);
 }
 
 .btn-outline {
@@ -527,8 +549,8 @@ ul, ol {
 }
 
 @keyframes goldPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(147, 112, 63, 0.3); }
-  50%       { box-shadow: 0 0 0 12px rgba(147, 112, 63, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184, 134, 60, 0.3); }
+  50%       { box-shadow: 0 0 0 12px rgba(184, 134, 60, 0); }
 }
 
 .animate-fade-up    { animation: fadeInUp 0.6s ease forwards; }

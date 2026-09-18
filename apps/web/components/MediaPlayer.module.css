@@ -31,7 +31,7 @@
 }
 
 .playButton:focus-visible {
-  outline: 2px solid var(--gold, #93703f);
+  outline: 2px solid var(--gold, #b8863c);
   outline-offset: -2px;
 }
 
@@ -49,7 +49,7 @@
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(circle at 50% 45%, rgba(147, 112, 63, 0.18) 0%, transparent 60%),
+    radial-gradient(circle at 50% 45%, rgba(184, 134, 60, 0.18) 0%, transparent 60%),
     #141414;
 }
 
@@ -64,7 +64,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(147, 112, 63, 0.92);
+  background: rgba(184, 134, 60, 0.92);
   color: #fff;
   padding-left: 3px;
   box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
@@ -87,12 +87,12 @@
 
 .fallbackText {
   font-size: 0.9375rem;
-  color: var(--gray-400, #6b6f66);
+  color: var(--gray-400, #9c8f79);
 }
 
 .fallbackLink {
   font-size: 0.875rem;
-  color: var(--gold, #93703f);
+  color: var(--gold, #b8863c);
   text-decoration: underline;
   text-underline-offset: 3px;
 }

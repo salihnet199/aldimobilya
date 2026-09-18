@@ -1,12 +1,12 @@
-/* Footer.module.css — warm light, minimal premium */
+/* Footer.module.css — deep black, gold accent (matches the logo) */
 
 .footer {
-  --footer-bg: #f7f5f0;
-  --footer-bg-alt: #f1eee6;
-  --footer-ink: #262923;
-  --footer-olive: #5d6754;
-  --footer-gold: #93703f;
-  --footer-line: rgba(38, 41, 35, 0.1);
+  --footer-bg: #080705;
+  --footer-bg-alt: #0d0b08;
+  --footer-ink: #f5efe2;
+  --footer-olive: #9c8f79;
+  --footer-gold: #b8863c;
+  --footer-line: rgba(245, 239, 226, 0.08);
 
   background: var(--footer-bg);
   color: var(--footer-ink);
@@ -74,7 +74,7 @@
   padding: 8px 14px;
   border-radius: var(--radius-full, 9999px);
   border: 1px solid var(--footer-line);
-  background: #ffffff;
+  background: rgba(245, 239, 226, 0.04);
   transition: border-color var(--transition-base), color var(--transition-base);
 }
 
@@ -178,7 +178,7 @@
 }
 
 .whatsappBtn:hover {
-  background: #7d5f34;
+  background: #7c4c0a;
   transform: translateY(-1px);
 }
 
