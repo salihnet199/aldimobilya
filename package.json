@@ -8,7 +8,9 @@
     "dev:web": "pnpm --filter web dev",
     "dev:admin": "pnpm --filter admin dev",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "test": "pnpm --filter admin test",
+    "typecheck": "pnpm --filter web exec tsc --project tsconfig.json --noEmit && pnpm --filter admin exec tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "@neon/config": "^1.4.2",

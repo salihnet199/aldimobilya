@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { prisma } from '@aldimobilya/db';
 import { getSiteSettings, getInstagramHref } from '@/lib/site-settings';
+import { listPublicRooms } from '@/lib/rooms';
+import { imageProps } from '@/lib/media';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -10,45 +11,9 @@ export const metadata: Metadata = {
   description: 'ALDi Mobilya lüks yatak odası tasarımları — tüm koleksiyonumuzu inceleyin.',
 };
 
-export const dynamic = 'force-dynamic';
-
-async function getRooms(category?: string, search?: string) {
-  try {
-    const where = {
-      isVisible: true,
-      ...(category ? { category } : {}),
-      ...(search
-        ? {
-            OR: [
-              { nameEn: { contains: search, mode: 'insensitive' as const } },
-              { nameTr: { contains: search, mode: 'insensitive' as const } },
-            ],
-          }
-        : {}),
-    };
-
-    const [rooms, allRooms] = await Promise.all([
-      prisma.room.findMany({
-        where,
-        include: { images: { orderBy: { order: 'asc' } } },
-        orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
-      }),
-      prisma.room.findMany({
-        where: { isVisible: true },
-        select: { category: true },
-      }),
-    ]);
-
-    const categories = [
-      ...new Set(allRooms.map((r) => r.category).filter((c): c is string => !!c)),
-    ].sort();
-
-    return { rooms, categories };
-  } catch (err) {
-    console.error('getRooms error:', err);
-    return { rooms: [], categories: [] };
-  }
-}
+// Rooms are authored in the admin panel; ISR keeps the catalogue CDN-cached
+// and refreshes within 5 minutes of a publish.
+export const revalidate = 300;
 
 export default async function KatalogPage({
   searchParams,
@@ -57,7 +22,7 @@ export default async function KatalogPage({
 }) {
   const params = await searchParams;
   const [{ rooms, categories }, settings] = await Promise.all([
-    getRooms(params.kategori, params.ara),
+    listPublicRooms({ category: params.kategori, search: params.ara }),
     getSiteSettings(),
   ]);
   const instagramHref = getInstagramHref(settings.instagram);
@@ -112,10 +77,9 @@ export default async function KatalogPage({
                   aria-label={`${displayName} — detayları gör`}
                 >
                   <Image
-                    src={displayImage}
+                    {...imageProps(displayImage)}
                     alt={displayName}
                     fill
-                    unoptimized
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     style={{ objectFit: 'cover' }}
                   />

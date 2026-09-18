@@ -7,7 +7,6 @@ import {
   MAX_SHORT_TEXT,
   isPlainObject,
   normalizeHeroSettings,
-  optionalEmbedId,
   optionalSocialValue,
   optionalText,
   validateHeroSlideshowInput,
@@ -61,7 +60,6 @@ interface SettingsWriteData {
   heroTitleTr?: string | null;
   heroSubtitleTr?: string | null;
   metaDescTr?: string | null;
-  elfSightCode?: string | null;
   heroImages?: Prisma.InputJsonValue;
 }
 
@@ -150,13 +148,6 @@ export async function PUT(request: Request) {
     const result = optionalText(body.metaDescTr, MAX_LONG_TEXT);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
     data.metaDescTr = result.value ?? null;
-  }
-
-  // ElfSight Instagram widget: a bounded App ID, never raw markup.
-  if ('elfSightCode' in body) {
-    const result = optionalEmbedId(body.elfSightCode);
-    if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
-    data.elfSightCode = result.value ?? null;
   }
 
   if (!Object.keys(data).length) {

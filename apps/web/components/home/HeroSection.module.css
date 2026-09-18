@@ -26,16 +26,15 @@
     linear-gradient(135deg, #ffffff 0%, var(--ivory) 50%, #f3efe6 100%);
 }
 
-/* Overlay — only meaningful over photography. */
+/* Overlay — two directions so the copy stays legible where it sits
+   (bottom-left) while the rest of the photography stays open. A single
+   heavy left-to-right wash would flatten the whole image. */
 .overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to right,
-    rgba(20, 18, 14, 0.72) 0%,
-    rgba(20, 18, 14, 0.45) 60%,
-    rgba(20, 18, 14, 0.18) 100%
-  );
+  background:
+    linear-gradient(to top, rgba(16, 14, 10, 0.80) 0%, rgba(16, 14, 10, 0.34) 34%, transparent 62%),
+    linear-gradient(to right, rgba(16, 14, 10, 0.50) 0%, rgba(16, 14, 10, 0.16) 46%, transparent 72%);
   z-index: 1;
 }
 

@@ -23,7 +23,6 @@ interface SettingsState {
   youtube: string;
   heroTitleTr: string;
   heroSubtitleTr: string;
-  elfSightCode: string;
   metaDescTr: string;
 }
 
@@ -38,7 +37,6 @@ const EMPTY_SETTINGS: SettingsState = {
   youtube: '',
   heroTitleTr: '',
   heroSubtitleTr: '',
-  elfSightCode: '',
   metaDescTr: '',
 };
 
@@ -108,7 +106,6 @@ export default function AyarlarPage() {
         youtube: typeof s.youtube === 'string' ? s.youtube : '',
         heroTitleTr: typeof s.heroTitleTr === 'string' ? s.heroTitleTr : '',
         heroSubtitleTr: typeof s.heroSubtitleTr === 'string' ? s.heroSubtitleTr : '',
-        elfSightCode: typeof s.elfSightCode === 'string' ? s.elfSightCode : '',
         metaDescTr: typeof s.metaDescTr === 'string' ? s.metaDescTr : '',
       });
       setHero(normalizeHeroSettings(s.heroSlideshow ?? s.heroImages));
@@ -374,28 +371,6 @@ export default function AyarlarPage() {
                 olarak görünür. Sıralama, görüntülenme sırasını belirler.
               </span>
               <HeroSlideshowEditor value={hero} onChange={setHero} />
-            </div>
-          </div>
-        </div>
-
-        {/* Instagram Widget */}
-        <div className="admin-card">
-          <h2 className={styles.sectionLabel}>Instagram Widget (ElfSight)</h2>
-          <div className={styles.fields}>
-            <div className="field-group">
-              <label className="admin-label">ElfSight App ID</label>
-              <input
-                className="admin-input"
-                type="text"
-                placeholder="ör. a1b2c3d4-..."
-                value={form.elfSightCode}
-                onChange={(e) => update('elfSightCode', e.target.value)}
-              />
-              <span className={styles.hint}>
-                <a href="https://elfsight.com/instagram-feed-widget/" target="_blank" rel="noopener noreferrer" className={styles.link}>
-                  ElfSight Instagram Widget
-                </a>{' '}oluşturun ve App ID&apos;yi buraya yapıştırın.
-              </span>
             </div>
           </div>
         </div>

@@ -7,16 +7,52 @@
 }
 
 .mainImage {
+  position: relative;
+  display: block;
+  width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: var(--radius-xl, 20px);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  background: var(--black-card, #141414);
+  background: var(--surface-alt);
+  cursor: zoom-in;
+  transition: box-shadow var(--transition-base);
+}
+
+.mainImage:hover {
+  box-shadow: var(--shadow-card-hover);
 }
 
 .mainImage img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Subtle "expand" affordance, revealed on hover/focus. */
+.expandHint {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--on-media);
+  background: rgba(20, 18, 14, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--transition-base), transform var(--transition-base);
+}
+
+.mainImage:hover .expandHint,
+.mainImage:focus-visible .expandHint {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .thumbs {
@@ -26,32 +62,157 @@
 }
 
 .thumb {
+  position: relative;
   aspect-ratio: 1;
   padding: 0;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  background: var(--black-card, #141414);
+  background: var(--surface-alt);
   border: 2px solid transparent;
   cursor: pointer;
-  transition: border-color var(--transition-fast, 150ms ease);
-}
-
-.thumb:hover,
-.thumb:focus-visible {
-  border-color: var(--gold, #93703f);
-}
-
-.thumbActive {
-  border-color: var(--gold, #93703f);
-}
-
-.thumb:focus-visible {
-  outline: 2px solid var(--gold, #93703f);
-  outline-offset: 2px;
+  transition: border-color var(--transition-fast);
 }
 
 .thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.thumb:hover,
+.thumb:focus-visible {
+  border-color: var(--bronze-light);
+}
+
+.thumbActive {
+  border-color: var(--bronze);
+}
+
+/* --- Fullscreen lightbox -------------------------------------------------- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: rgba(16, 15, 12, 0.94);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  max-width: none;
+  max-height: none;
+  color: var(--on-media);
+  overflow: hidden;
+}
+
+.lightbox::backdrop {
+  background: rgba(16, 15, 12, 0.94);
+}
+
+.lightboxStage {
+  position: absolute;
+  inset: 0;
+}
+
+.lightboxSlide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  display: grid;
+  place-items: center;
+}
+
+.lightboxSlideActive {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* Contain the whole image so nothing is cropped in fullscreen. */
+.lightboxSlide img {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: calc(100dvh - 96px);
+  object-fit: contain !important;
+  padding: clamp(16px, 4vw, 48px);
+}
+
+.lightboxCounter {
+  position: absolute;
+  top: clamp(16px, 3vw, 28px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--on-media-muted);
+}
+
+.lightboxNav,
+.lightboxClose {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: var(--on-media);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.lightboxNav:hover,
+.lightboxClose:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.lightboxNav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightboxNav:hover {
+  transform: translateY(-50%) scale(1.06);
+}
+
+.lightboxPrev { left: clamp(12px, 3vw, 32px); }
+.lightboxNext { right: clamp(12px, 3vw, 32px); }
+
+.lightboxClose {
+  top: clamp(16px, 3vw, 28px);
+  right: clamp(12px, 3vw, 32px);
+}
+
+.lightboxClose:hover {
+  transform: rotate(90deg);
+}
+
+@media (max-width: 600px) {
+  .lightboxNav,
+  .lightboxClose {
+    width: 42px;
+    height: 42px;
+  }
+
+  .expandHint {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightboxSlide {
+    transition: opacity 0.2s ease;
+  }
+
+  .lightboxNav:hover,
+  .lightboxClose:hover {
+    transform: none;
+  }
 }

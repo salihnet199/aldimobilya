@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'ALDi Mobilya ile iletişime geçin. WhatsApp danışma hattı, showroom adresi ve detaylı bilgi.',
 };
 
-export const dynamic = 'force-dynamic';
+// Contact details are admin-managed; ISR refreshes them within 5 minutes.
+export const revalidate = 300;
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();

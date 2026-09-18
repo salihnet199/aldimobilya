@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   description: 'ALDi Mobilya — Lüks yatak odası mobilyasında zarafet, el işçiliği ve üstün kalite standardı.',
 };
 
-export const dynamic = 'force-dynamic';
+// The page is static copy plus the admin-managed contact link; ISR is enough.
+export const revalidate = 300;
 
 export default async function AboutPage() {
   const settings = await getSiteSettings();

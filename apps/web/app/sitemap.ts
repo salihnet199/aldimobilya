@@ -3,9 +3,10 @@ import { prisma } from '@aldimobilya/db';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://aldimobilya.com';
 
-// Rooms are added and hidden from the admin panel, so the sitemap must be
-// generated per request instead of being cached at build time.
-export const dynamic = 'force-dynamic';
+// Rooms are added and hidden from the admin panel. The sitemap is regenerated
+// hourly rather than per request, so crawlers still discover new models
+// quickly without a database query on every hit.
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [

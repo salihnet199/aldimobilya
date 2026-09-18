@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@aldimobilya/db';
+import { listPublicRooms } from '@/lib/rooms';
 
 /**
  * Public room catalogue — read-only.
@@ -24,34 +24,7 @@ export async function GET(request: Request) {
   const featured = searchParams.get('featured') === 'true';
 
   try {
-    // `isVisible: true` is the hard gate: hidden rooms are never listed.
-    const where = {
-      isVisible: true,
-      ...(featured ? { isFeatured: true } : {}),
-      ...(category ? { category } : {}),
-      ...(search
-        ? { nameTr: { contains: search, mode: 'insensitive' as const } }
-        : {}),
-    };
-
-    const [rooms, allRooms] = await Promise.all([
-      prisma.room.findMany({
-        where,
-        include: { images: { orderBy: { order: 'asc' } } },
-        orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
-      }),
-      prisma.room.findMany({
-        where: { isVisible: true },
-        select: { category: true },
-      }),
-    ]);
-
-    const categories = [
-      ...new Set(
-        allRooms.map((r) => r.category).filter((c): c is string => !!c),
-      ),
-    ].sort();
-
+    const { rooms, categories } = await listPublicRooms({ category, search, featured });
     return NextResponse.json({ rooms, categories });
   } catch (err) {
     console.error('[GET /api/rooms]', err);

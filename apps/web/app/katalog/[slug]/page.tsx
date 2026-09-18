@@ -5,6 +5,7 @@ import { prisma } from '@aldimobilya/db';
 import type { RoomSpecs } from '@aldimobilya/types';
 import MediaPlayer from '@/components/MediaPlayer';
 import { getSiteSettings, getWhatsAppHref } from '@/lib/site-settings';
+import { jsonLd, siteUrl } from '@/lib/seo';
 import RoomGallery, { type GalleryImage } from './RoomGallery';
 import styles from './page.module.css';
 
@@ -12,7 +13,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 // Hidden rooms (isVisible = false) must never be reachable on the public site,
 // so the visibility flag is part of the lookup rather than a post-filter.
@@ -68,8 +69,40 @@ export default async function RoomDetailPage({ params }: Props) {
     `Merhaba, "${displayName}" modeli hakkında bilgi almak istiyorum.`,
   );
 
+  // Product structured data so search engines can render rich results. Only
+  // absolute https (or root-relative, resolved against the site origin) image
+  // URLs are emitted — the JSON-LD helper escapes script delimiters.
+  const productImages = galleryImages
+    .map((img) => {
+      try {
+        return new URL(img.url, siteUrl).href;
+      } catch {
+        return null;
+      }
+    })
+    .filter((url): url is string => !!url);
+
+  const productLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: displayName,
+    ...(displayDesc ? { description: displayDesc } : {}),
+    url: `${siteUrl}/katalog/${room.slug}`,
+    ...(productImages.length ? { image: productImages } : {}),
+    brand: { '@type': 'Brand', name: 'ALDi Mobilya' },
+    ...(room.category ? { category: room.category } : {}),
+    offers: {
+      '@type': 'Offer',
+      availability: 'https://schema.org/InStock',
+      priceCurrency: 'TRY',
+      ...(settings.phone ? { telephone: settings.phone } : {}),
+    },
+  };
+
   return (
     <div className={styles.page}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productLd) }} />
+
       {/* Breadcrumb */}
       <nav className={`container ${styles.breadcrumb}`} aria-label="Sayfa yolu">
         <Link href="/">Ana Sayfa</Link>
@@ -138,9 +171,19 @@ export default async function RoomDetailPage({ params }: Props) {
                   {specs.colors && (
                     <div className={styles.specItem}>
                       <span className={styles.specLabel}>Renkler</span>
-                      <span className={styles.specValue}>
-                        {Array.isArray(specs.colors) ? specs.colors.join(', ') : specs.colors}
-                      </span>
+                      {Array.isArray(specs.colors) && specs.colors.length > 0 ? (
+                        <div className={styles.colorChips}>
+                          {specs.colors.map((color) => (
+                            <span key={color} className={styles.colorChip}>
+                              {color}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className={styles.specValue}>
+                          {String(specs.colors)}
+                        </span>
+                      )}
                     </div>
                   )}
                   {specs.warranty && (

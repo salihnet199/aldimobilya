@@ -134,7 +134,7 @@ export default async function DashboardPage() {
         </svg>
         <p>
           Veritabanı bağlantısı kurmak için <strong>.env.local</strong> dosyasına
-          Supabase, Cloudinary ve NextAuth bilgilerini ekleyin. Ardından <code>pnpm --filter @aldimobilya/db db:push</code> komutunu çalıştırın.
+          Neon, Cloudinary ve NextAuth bilgilerini ekleyin. Ardından <code>pnpm --filter @aldimobilya/db db:push</code> komutunu çalıştırın.
         </p>
       </div>
     </div>

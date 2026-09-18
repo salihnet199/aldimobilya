@@ -24,10 +24,14 @@ export async function GET() {
     // HeroCarousel) work unchanged; `heroSlideshow` carries the full settings.
     const heroSlideshow = normalizeHeroSettings(settings?.heroImages);
 
+    // Every field is resolved from the database row alone. There are no
+    // hardcoded placeholder defaults: a missing value is `null` so the UI can
+    // degrade to a safe internal link instead of presenting a fake phone
+    // number or social handle to a customer.
     return NextResponse.json({
       settings: {
-        whatsapp: settings?.whatsapp ?? process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '+905000000000',
-        instagram: settings?.instagram ?? 'aldimobilya',
+        whatsapp: settings?.whatsapp ?? null,
+        instagram: settings?.instagram ?? null,
         facebook: settings?.facebook ?? null,
         tiktok: settings?.tiktok ?? null,
         youtube: settings?.youtube ?? null,
@@ -35,7 +39,6 @@ export async function GET() {
         heroSubtitleTr: settings?.heroSubtitleTr ?? null,
         heroImages: heroSlideshow.images,
         heroSlideshow,
-        elfSightCode: settings?.elfSightCode ?? null,
       },
     });
   } catch (err) {

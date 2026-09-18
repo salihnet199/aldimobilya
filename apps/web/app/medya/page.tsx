@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   description: 'ALDi Mobilya tanıtım videoları ve görsel galeri.',
 };
 
-// Videos are managed from the admin panel, so the public page must reflect
-// changes immediately instead of serving a cached snapshot.
-export const dynamic = 'force-dynamic';
+// Videos are published from the admin panel. A short ISR window keeps the page
+// fast and still reflects a publish within 5 minutes.
+export const revalidate = 300;
 
 async function getPublicVideos() {
   try {
@@ -25,9 +25,19 @@ async function getPublicVideos() {
   }
 }
 
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('tr-TR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
+
 export default async function MedyaPage() {
   const [videos, settings] = await Promise.all([getPublicVideos(), getSiteSettings()]);
   const instagramHref = getInstagramHref(settings.instagram);
+
+  const [feature, ...rest] = videos;
 
   return (
     <div className={styles.page}>
@@ -45,18 +55,41 @@ export default async function MedyaPage() {
 
       <div className="container section">
         {videos.length > 0 ? (
-          <ul className={styles.grid}>
-            {videos.map((video) => (
-              <li key={video.id} className={styles.card}>
+          <>
+            {/* Featured — the newest publish gets editorial presence. */}
+            {feature && (
+              <div className={styles.feature}>
                 <MediaPlayer
-                  url={video.url}
-                  title={video.title}
-                  thumbnail={video.thumbnail}
+                  url={feature.url}
+                  title={feature.title}
+                  thumbnail={feature.thumbnail}
                 />
-                <h2 className={styles.videoTitle}>{video.title}</h2>
-              </li>
-            ))}
-          </ul>
+                <div className={styles.featureMeta}>
+                  <span className={styles.date}>{formatDate(feature.createdAt)}</span>
+                  <h2 className={styles.featureTitle}>{feature.title}</h2>
+                </div>
+              </div>
+            )}
+
+            {/* Rest of the showcase. */}
+            {rest.length > 0 && (
+              <ul className={styles.grid}>
+                {rest.map((video) => (
+                  <li key={video.id} className={styles.card}>
+                    <MediaPlayer
+                      url={video.url}
+                      title={video.title}
+                      thumbnail={video.thumbnail}
+                    />
+                    <div className={styles.cardMeta}>
+                      <span className={styles.date}>{formatDate(video.createdAt)}</span>
+                      <h2 className={styles.videoTitle}>{video.title}</h2>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         ) : (
           <div className="empty-state">
             <div className="empty-state-icon">

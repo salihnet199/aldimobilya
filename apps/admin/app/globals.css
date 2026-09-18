@@ -67,6 +67,16 @@ a {
   padding: 24px;
 }
 
+/* Keyboard focus is never hidden. The gold ring matches the brand accent and
+   applies on top of any control-specific focus styling. */
+.admin-btn:focus-visible,
+.admin-input:focus-visible,
+.admin-select:focus-visible,
+.admin-textarea:focus-visible {
+  outline: 2px solid var(--admin-gold);
+  outline-offset: 2px;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -280,7 +290,25 @@ a {
   transform: translateX(18px);
 }
 
+/* The native input is visually hidden, so keyboard focus would be invisible.
+   Surface it as a ring on the track instead. */
+.toggle input:focus-visible + .toggle-track {
+  outline: 2px solid var(--admin-gold);
+  outline-offset: 2px;
+}
+
 .toggle-label {
   font-size: 0.875rem;
   color: var(--admin-text-muted);
+}
+
+/* Respect reduced motion across all interface transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

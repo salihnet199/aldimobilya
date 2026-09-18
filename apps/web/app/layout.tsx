@@ -6,7 +6,9 @@ import Footer from '@/components/layout/Footer';
 import { getSiteSettings, getWhatsAppHref, getInstagramHref } from '@/lib/site-settings';
 import { jsonLd, siteUrl } from '@/lib/seo';
 
-export const dynamic = 'force-dynamic';
+// Settings are admin-managed; ISR refreshes them within 5 minutes while every
+// page stays CDN-cached instead of hitting Postgres per request.
+export const revalidate = 300;
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],

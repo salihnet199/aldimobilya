@@ -80,6 +80,26 @@
   text-align: right;
 }
 
+/* Color options as quiet chips rather than a comma-joined string. */
+.colorChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  max-width: 220px;
+}
+
+.colorChip {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line-bronze);
+  background: var(--bronze-muted);
+  color: var(--bronze-dark);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
 .cta {
   background: linear-gradient(135deg, rgba(147, 112, 63, 0.07), rgba(147, 112, 63, 0.03));
   border: 1px solid var(--line-bronze);
@@ -110,5 +130,22 @@
 
   .info {
     position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .specItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .specValue {
+    text-align: left;
+  }
+
+  .colorChips {
+    justify-content: flex-start;
+    max-width: none;
   }
 }

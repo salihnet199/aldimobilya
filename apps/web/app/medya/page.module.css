@@ -1,4 +1,4 @@
-/* medya/page.module.css */
+/* medya/page.module.css — editorial showcase */
 
 .pageHeader {
   padding-block: clamp(48px, 8vw, 96px);
@@ -6,19 +6,56 @@
   border-bottom: 1px solid var(--line);
 }
 
+/* Featured — the newest publish, full width with presence. */
+.feature {
+  margin-bottom: clamp(40px, 6vw, 72px);
+}
+
+.featureMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.featureTitle {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* Remaining videos. */
 .grid {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: clamp(24px, 4vw, 48px);
 }
 
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.date {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  font-weight: 500;
 }
 
 .videoTitle {
@@ -32,6 +69,6 @@
 @media (max-width: 600px) {
   .grid {
     grid-template-columns: 1fr;
-    gap: var(--space-5);
+    gap: var(--space-8);
   }
 }

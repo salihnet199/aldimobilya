@@ -50,7 +50,7 @@ export default async function FeaturedRooms() {
               <Link
                 key={room.id}
                 href={`/katalog/${room.slug}`}
-                className={`room-card ${styles.card} ${i === 0 ? styles.cardLarge : ''}`}
+                className={`${styles.card} ${i === 0 ? styles.cardLarge : ''}`}
                 aria-label={`${displayName} — detayları gör`}
               >
                 <Image
