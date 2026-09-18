@@ -61,7 +61,7 @@ export default async function HeroSection() {
 
           {/* CTAs */}
           <div className={styles.ctas}>
-            <Link href="/katalog" className="btn btn-gold">
+            <Link href="/katalog" className="btn btn-gold" data-magnetic>
               Koleksiyonu Keşfet
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m9 18 6-6-6-6"/>
@@ -71,6 +71,7 @@ export default async function HeroSection() {
               href={whatsappHref}
               {...(whatsappIsExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               className="btn btn-outline"
+              data-magnetic
             >
               WhatsApp ile Bilgi Al
             </a>

@@ -288,6 +288,14 @@ ul, ol {
   .btn::before { display: none; }
 }
 
+[data-magnetic] {
+  transition: transform 0.15s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  [data-magnetic] { transition: none; }
+}
+
 .btn-gold {
   background: linear-gradient(135deg, var(--bronze), var(--bronze-dark));
   color: #fff;
@@ -618,6 +626,20 @@ html.has-custom-cursor .room-card {
 @keyframes scaleIn {
   from { transform: scale(0.96); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
+}
+
+/* --- Route transition --- */
+.routeFade {
+  animation: routeFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes routeFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .routeFade { animation: none; }
 }
 
 @keyframes slideInLeft {

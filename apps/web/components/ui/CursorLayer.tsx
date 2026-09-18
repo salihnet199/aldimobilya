@@ -39,6 +39,26 @@ export default function CursorLayer() {
 
     const INTERACTIVE_SELECTOR = 'a, button, .btn, .card, .room-card, [role="button"]';
     const SPOTLIGHT_SELECTOR = '.card, .room-card';
+    const MAGNETIC_RADIUS = 90; // px beyond which the pull effect fades out
+    const MAGNETIC_STRENGTH = 0.35; // fraction of offset actually applied
+
+    function updateMagnetic(clientX: number, clientY: number) {
+      document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dist = Math.hypot(clientX - cx, clientY - cy);
+        const maxDist = Math.max(rect.width, rect.height) / 2 + MAGNETIC_RADIUS;
+
+        if (dist < maxDist) {
+          const pullX = (clientX - cx) * MAGNETIC_STRENGTH;
+          const pullY = (clientY - cy) * MAGNETIC_STRENGTH;
+          el.style.transform = `translate(${pullX}px, ${pullY}px)`;
+        } else if (el.style.transform) {
+          el.style.transform = '';
+        }
+      });
+    }
 
     function onPointerMove(e: PointerEvent) {
       targetX = e.clientX;
@@ -58,6 +78,8 @@ export default function CursorLayer() {
         spotlightEl.style.setProperty('--spot-x', `${e.clientX - rect.left}px`);
         spotlightEl.style.setProperty('--spot-y', `${e.clientY - rect.top}px`);
       }
+
+      updateMagnetic(e.clientX, e.clientY);
     }
 
     function onPointerLeaveWindow() {

@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import CursorLayer from '@/components/ui/CursorLayer';
+import RouteFade from '@/components/ui/RouteFade';
 import { getSiteSettings, getWhatsAppHref, getInstagramHref } from '@/lib/site-settings';
 import { jsonLd, siteUrl } from '@/lib/seo';
 
@@ -67,7 +68,9 @@ export default async function RootLayout({
         <a className="skip-link" href="#main-content">İçeriğe geç</a>
         <Header contactHref={getWhatsAppHref(settings.whatsapp)} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organization) }} />
-        <main id="main-content">{children}</main>
+        <main id="main-content">
+          <RouteFade>{children}</RouteFade>
+        </main>
         <Footer />
         <CursorLayer />
       </body>
