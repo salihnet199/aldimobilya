@@ -51,6 +51,7 @@
 .titleGold {
   background: linear-gradient(135deg, #f3e5b8 0%, #c9a84c 50%, #9e7f2b 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-style: italic;
   font-family: serif;
@@ -206,6 +207,7 @@
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
