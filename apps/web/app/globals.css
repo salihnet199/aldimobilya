@@ -353,6 +353,83 @@ ul, ol {
   transform: translateY(-4px);
 }
 
+.card,
+.room-card {
+  position: relative;
+}
+
+/* Cursor-tracking gold spotlight — set via CursorLayer.tsx on pointer move */
+.card::after,
+.room-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle 220px at var(--spot-x, 50%) var(--spot-y, 50%), rgba(184, 134, 60, 0.16), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card:hover::after,
+.room-card:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .card::after,
+  .room-card::after {
+    display: none;
+  }
+}
+
+/* --- Custom Cursor (desktop only, added by CursorLayer.tsx) --- */
+.cursorDot,
+.cursorRing {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.cursorDot {
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  background: var(--bronze-light);
+}
+
+.cursorRing {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1px solid var(--bronze);
+  transition: opacity 0.25s ease, width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.25s cubic-bezier(0.16, 1, 0.3, 1), margin 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s ease, background 0.25s ease;
+}
+
+.cursorRing.cursorRingActive {
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  background: var(--bronze-muted);
+  border-color: var(--bronze-light);
+}
+
+html.has-custom-cursor,
+html.has-custom-cursor a,
+html.has-custom-cursor button,
+html.has-custom-cursor .btn,
+html.has-custom-cursor .card,
+html.has-custom-cursor .room-card {
+  cursor: none;
+}
+
 /* --- Room Card --- */
 .room-card {
   position: relative;
@@ -500,7 +577,7 @@ ul, ol {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d8d2c6;
+  background: var(--ink-faint);
   border-radius: var(--radius-full);
 }
 
@@ -511,7 +588,7 @@ ul, ol {
 /* --- Selection --- */
 ::selection {
   background: var(--bronze-muted);
-  color: var(--bronze-dark);
+  color: var(--bronze-light);
 }
 
 /* --- Focus --- */

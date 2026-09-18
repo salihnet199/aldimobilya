@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import CursorLayer from '@/components/ui/CursorLayer';
 import { getSiteSettings, getWhatsAppHref, getInstagramHref } from '@/lib/site-settings';
 import { jsonLd, siteUrl } from '@/lib/seo';
 
@@ -68,6 +69,7 @@ export default async function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organization) }} />
         <main id="main-content">{children}</main>
         <Footer />
+        <CursorLayer />
       </body>
     </html>
   );
