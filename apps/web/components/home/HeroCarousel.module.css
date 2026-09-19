@@ -46,8 +46,8 @@
   z-index: 1;
   pointer-events: none;
   /* Feather left & right edges seamlessly into ambient background (no hard box borders) */
-  mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
 }
 
 .centerpieceImg {
@@ -95,8 +95,8 @@
 
 @media (max-width: 768px) {
   .centerpiece {
-    mask-image: none;
     -webkit-mask-image: none;
+    mask-image: none;
   }
   
   .centerpieceImg {
