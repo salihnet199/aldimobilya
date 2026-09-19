@@ -131,7 +131,7 @@
 @media (max-width: 960px) {
   .hero {
     padding: 100px 0 50px;
-    min-height: auto;
+    min-height: 0;
   }
 
   .gridContainer {
