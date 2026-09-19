@@ -10,6 +10,9 @@ const csp = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ['@aldimobilya/db'],
+  experimental: {
+    staleTimes: { dynamic: 0, static: 30 },
+  },
   images: { remotePatterns: [{ protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' }] },
   async headers() {
     return [{ source: '/:path*', headers: [

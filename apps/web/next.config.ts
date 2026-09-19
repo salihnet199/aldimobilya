@@ -10,6 +10,15 @@ const csp = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ['@aldimobilya/db', '@aldimobilya/types'],
+  // Every page already opts out of server-side caching (revalidate = 0),
+  // but Next's *client-side* router cache still held onto visited pages
+  // for its default 5-minute window regardless — so admin edits appeared
+  // instantly on a hard refresh but could take up to 5 minutes to show
+  // up when navigating via <Link> without one. Disabling it here matches
+  // the revalidate=0 intent everywhere, not just on the server.
+  experimental: {
+    staleTimes: { dynamic: 0, static: 30 },
+  },
   images: { remotePatterns: [{ protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' }], formats: ['image/avif', 'image/webp'] },
   async headers() {
     return [{ source: '/:path*', headers: [
