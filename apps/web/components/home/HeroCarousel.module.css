@@ -16,54 +16,18 @@
   z-index: 1;
 }
 
-/* Ambient blurred backdrop: eliminates blank edges and extends lighting */
-.ambientBackdrop {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.ambientImg {
+.heroImage {
+  width: 100% !important;
+  height: 100% !important;
   object-fit: cover !important;
-  filter: blur(36px) brightness(0.4) saturate(1.25);
-  transform: scale(1.18);
-  will-change: transform;
+  object-position: center 30% !important;
+  display: block;
 }
 
-/* Foreground ultra-sharp presentation: 100% uncut */
-.fgWrapper {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.fgImg {
-  object-fit: contain !important;
-  padding: clamp(20px, 5vh, 60px) clamp(20px, 5vw, 80px);
-  filter: drop-shadow(0 25px 60px rgba(0, 0, 0, 0.85));
-  will-change: transform;
-}
-
-/* Luxury 3D Perspective Floating Animation */
-@keyframes float3D {
-  0% {
-    transform: perspective(1200px) scale(0.985) translateZ(0) translateY(0);
+@media (max-width: 768px) {
+  .heroImage {
+    object-position: center center !important;
   }
-  50% {
-    transform: perspective(1200px) scale(1.025) translateZ(35px) translateY(-8px);
-  }
-  100% {
-    transform: perspective(1200px) scale(0.985) translateZ(0) translateY(0);
-  }
-}
-
-.fgAnim3D {
-  animation: float3D 8.5s ease-in-out infinite alternate;
 }
 
 /* Controls sit on top of photography, so they carry their own scrim. */

@@ -115,33 +115,19 @@ export default function MasterpieceCard({ room, idx, isLead }: MasterpieceCardPr
         >
           {photos.map((photoUrl, pIdx) => (
             <div key={photoUrl + '-' + pIdx} className={styles.cardSlideItem}>
-              {/* Layer 1: Ambient background filling the edges seamlessly */}
-              <div className={styles.cardAmbientBackdrop} aria-hidden="true">
-                <Image
-                  {...imageProps(photoUrl, 800)}
-                  alt=""
-                  fill
-                  sizes="100vw"
-                  className={styles.cardAmbientImg}
-                />
-              </div>
-
-              {/* Layer 2: 100% Uncut Furniture Photo with 3D Depth */}
-              <div className={styles.cardFgWrapper}>
-                <Image
-                  {...imageProps(photoUrl, 1600)}
-                  alt={`${displayName} - fotoğraf ${pIdx + 1}`}
-                  fill
-                  priority={idx === 0 && pIdx === 0}
-                  loading={idx < 2 && pIdx < 2 ? 'eager' : 'lazy'}
-                  sizes={
-                    isLead
-                      ? '(max-width: 1024px) 100vw, 66vw'
-                      : '(max-width: 680px) 100vw, (max-width: 1024px) 50vw, 33vw'
-                  }
-                  className={styles.cardFgImg}
-                />
-              </div>
+              <Image
+                {...imageProps(photoUrl, 1600)}
+                alt={`${displayName} - fotoğraf ${pIdx + 1}`}
+                fill
+                priority={idx === 0 && pIdx === 0}
+                loading={idx < 2 && pIdx < 2 ? 'eager' : 'lazy'}
+                sizes={
+                  isLead
+                    ? '(max-width: 1024px) 100vw, 66vw'
+                    : '(max-width: 680px) 100vw, (max-width: 1024px) 50vw, 33vw'
+                }
+                className={styles.image}
+              />
             </div>
           ))}
         </div>
