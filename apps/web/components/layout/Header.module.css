@@ -28,8 +28,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 84px;
-  height: 84px;
+  width: 200px;
+  height: 58px;
   overflow: hidden;
   background: transparent;
 }
@@ -60,7 +60,7 @@
 
 @media (max-width: 900px) {
   .masthead { min-height: 106px; gap: 8px; }
-  .logo { width: 68px; height: 68px; }
+  .logo { width: 160px; height: 46px; }
   .menuButton { display: flex; }
   .signature, .navigation { display: none; }
   .consultation span { display: none; }
@@ -68,6 +68,6 @@
 }
 
 @media (max-width: 380px) {
-  .logo { width: 58px; height: 58px; }
+  .logo { width: 130px; height: 38px; }
   .masthead { min-height: 96px; }
 }
