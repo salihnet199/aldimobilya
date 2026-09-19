@@ -28,6 +28,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'ALDi Mobilya | Lüks Yatak Odası Tasarımları',
     template: '%s | ALDi Mobilya',
@@ -39,6 +40,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'tr_TR',
     siteName: 'ALDi Mobilya',
+    images: [{ url: '/logo.jpg', alt: 'ALDi Mobilya' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/logo.jpg'],
   },
   robots: {
     index: true,

@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import { prisma } from '@aldimobilya/db';
 import MediaPlayer from '@/components/MediaPlayer';
 import { getSiteSettings, getInstagramHref } from '@/lib/site-settings';
+import { pageMetadata } from '@/lib/seo';
 import styles from './page.module.css';
 
-export const metadata: Metadata = {
-  title: 'Medya & Videolar',
-  description: 'ALDi Mobilya tanıtım videoları ve görsel galeri.',
-};
+export const metadata: Metadata = pageMetadata(
+  'Medya & Videolar',
+  'ALDi Mobilya tanıtım videoları ve görsel galeri.',
+  '/medya',
+);
 
 // Videos are published from the admin panel. A short ISR window keeps the page
 // fast and still reflects a publish within 5 minutes.

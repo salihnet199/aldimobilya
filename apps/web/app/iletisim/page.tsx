@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { getSiteSettings, getWhatsAppHref, getInstagramHref, getInstagramHandle } from '@/lib/site-settings';
+import { pageMetadata } from '@/lib/seo';
 import styles from './page.module.css';
 
-export const metadata: Metadata = {
-  title: 'İletişim',
-  description: 'ALDi Mobilya ile iletişime geçin. WhatsApp danışma hattı, showroom adresi ve detaylı bilgi.',
-};
+export const metadata: Metadata = pageMetadata(
+  'İletişim',
+  'ALDi Mobilya ile iletişime geçin. WhatsApp danışma hattı, showroom adresi ve detaylı bilgi.',
+  '/iletisim',
+);
 
 // Contact details are admin-managed; ISR refreshes them within 5 minutes.
 export const revalidate = 300;

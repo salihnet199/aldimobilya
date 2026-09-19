@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSiteSettings, getWhatsAppHref } from '@/lib/site-settings';
+import { pageMetadata } from '@/lib/seo';
 import styles from './page.module.css';
 
-export const metadata: Metadata = {
-  title: 'Hakkımızda',
-  description: 'ALDi Mobilya — Lüks yatak odası mobilyasında zarafet, el işçiliği ve üstün kalite standardı.',
-};
+export const metadata: Metadata = pageMetadata(
+  'Hakkımızda',
+  'ALDi Mobilya — Lüks yatak odası mobilyasında zarafet, el işçiliği ve üstün kalite standardı.',
+  '/hakkimizda',
+);
 
 // The page is static copy plus the admin-managed contact link; ISR is enough.
 export const revalidate = 300;

@@ -4,12 +4,14 @@ import Image from 'next/image';
 import { getSiteSettings, getInstagramHref } from '@/lib/site-settings';
 import { listPublicRooms } from '@/lib/rooms';
 import { imageProps } from '@/lib/media';
+import { pageMetadata } from '@/lib/seo';
 import styles from './page.module.css';
 
-export const metadata: Metadata = {
-  title: 'Yatak Odası Koleksiyonu',
-  description: 'ALDi Mobilya lüks yatak odası tasarımları — tüm koleksiyonumuzu inceleyin.',
-};
+export const metadata: Metadata = pageMetadata(
+  'Yatak Odası Koleksiyonu',
+  'ALDi Mobilya lüks yatak odası tasarımları — tüm koleksiyonumuzu inceleyin.',
+  '/katalog',
+);
 
 // Rooms are authored in the admin panel; ISR keeps the catalogue CDN-cached
 // and refreshes within 5 minutes of a publish.
