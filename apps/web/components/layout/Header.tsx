@@ -64,7 +64,7 @@ export default function Header({ contactHref = '/iletisim' }: { contactHref?: st
           <span className={styles.signature}>Özenle tasarlandı.<br /><span>Sizin için üretildi.</span></span>
         </div>
         <Link href="/" className={styles.logo} aria-label="ALDi Mobilya — Ana Sayfa">
-          <Image {...imageProps('/logo.jpg')} alt="ALDi Mobilya" width={150} height={150} priority className={styles.logoImg} />
+          <Image src="/logo.png" alt="ALDi Mobilya" width={1280} height={367} priority className={styles.logoImg} />
         </Link>
         <div className={styles.right}>
           <a href={contactHref} className={styles.consultation} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>
