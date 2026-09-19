@@ -61,6 +61,25 @@ export default function CursorLayer() {
     }
 
     function onPointerMove(e: PointerEvent) {
+      // Native <dialog> elements (the fullscreen gallery lightbox, the
+      // mobile menu) render in the browser's top layer, above any
+      // z-index — our fake cursor can never draw over them. Fall back to
+      // the real OS cursor whenever one is open, instead of leaving the
+      // user with no visible cursor at all.
+      const modalOpen = !!document.querySelector('dialog[open]');
+      if (modalOpen) {
+        if (document.documentElement.classList.contains('has-custom-cursor')) {
+          document.documentElement.classList.remove('has-custom-cursor');
+          dot!.style.opacity = '0';
+          ring!.style.opacity = '0';
+        }
+        return;
+      } else if (!document.documentElement.classList.contains('has-custom-cursor')) {
+        document.documentElement.classList.add('has-custom-cursor');
+        dot!.style.opacity = '1';
+        ring!.style.opacity = '1';
+      }
+
       targetX = e.clientX;
       targetY = e.clientY;
       dot!.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
