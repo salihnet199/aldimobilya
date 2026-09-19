@@ -99,9 +99,9 @@
   transition: transform 0.15s ease;
 }
 
-/* Hero / Featured Card (First element spans 2 columns) */
+/* Hero / Featured Card (Latest published suite takes full prominent width) */
 .cardLead {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
 /* Image Container with Luxury Gold Sheen */
