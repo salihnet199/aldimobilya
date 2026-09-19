@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { imageProps } from '@/lib/media';
 import styles from './Header.module.css';
 
 const navLinks = [
