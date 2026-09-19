@@ -81,22 +81,25 @@ export default function HeroCarousel({
       onFocus={() => setFocusWithin(true)}
       onBlur={handleBlur}
     >
-      {images.map((src, i) => (
-        <div
-          key={src + i}
-          className={`${styles.slide} ${i === active ? styles.slideActive : ''}`}
-        >
-          <Image
-            {...imageProps(src, 2400)}
-            alt=""
-            fill
-            priority={i === 0}
-            loading={i === 0 ? undefined : 'lazy'}
-            sizes="100vw"
-            className={styles.heroImage}
-          />
-        </div>
-      ))}
+      {images.map((src, i) => {
+        const isActive = i === active;
+        return (
+          <div
+            key={src + i}
+            className={`${styles.slide} ${isActive ? styles.slideActive : ''}`}
+          >
+            <Image
+              {...imageProps(src, 2400)}
+              alt="ALDi Mobilya Özel Koleksiyon"
+              fill
+              priority={i === 0}
+              loading={i === 0 ? undefined : 'lazy'}
+              sizes="100vw"
+              className={`${styles.heroImage} ${isActive ? (i % 2 === 0 ? styles.cinematicA : styles.cinematicB) : ''}`}
+            />
+          </div>
+        );
+      })}
 
       {multiple && (
         <div className={styles.controls}>
