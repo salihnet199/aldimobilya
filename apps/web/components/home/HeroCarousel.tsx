@@ -29,7 +29,6 @@ function getReducedMotion() {
 
 interface HeroCarouselProps {
   images: string[];
-  /** Autoplay preference from the admin slideshow settings. */
   autoplay?: boolean;
   intervalMs?: number;
 }
@@ -43,7 +42,6 @@ export default function HeroCarousel({
   const [intent, setIntent] = useState<PlaybackIntent>('auto');
   const [focusWithin, setFocusWithin] = useState(false);
 
-  // OS-level motion preference, read without a setState-in-effect cascade.
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
     getReducedMotion,
@@ -53,7 +51,6 @@ export default function HeroCarousel({
   const multiple = images.length > 1;
   const playing =
     intent === 'play' ? true : intent === 'pause' ? false : autoplay && !reducedMotion;
-  // Keyboard focus pauses the rotation unless the visitor explicitly pressed play.
   const running = multiple && playing && !(focusWithin && intent !== 'play');
 
   useEffect(() => {
@@ -88,15 +85,29 @@ export default function HeroCarousel({
             key={src + i}
             className={`${styles.slide} ${isActive ? styles.slideActive : ''}`}
           >
-            <Image
-              {...imageProps(src, 2400)}
-              alt="ALDi Mobilya Özel Koleksiyon"
-              fill
-              priority={i === 0}
-              loading={i === 0 ? undefined : 'lazy'}
-              sizes="100vw"
-              className={`${styles.heroImage} ${isActive ? (i % 2 === 0 ? styles.cinematicA : styles.cinematicB) : ''}`}
-            />
+            {/* Seamless deep background canvas extending edge-to-edge */}
+            <div className={styles.bgCanvas} aria-hidden="true">
+              <Image
+                {...imageProps(src, 1600)}
+                alt=""
+                fill
+                sizes="100vw"
+                className={styles.bgCanvasImg}
+              />
+            </div>
+
+            {/* Seamless Centerpiece: 100% full uncropped furniture with soft feather edge */}
+            <div className={styles.centerpiece}>
+              <Image
+                {...imageProps(src, 2400)}
+                alt="ALDi Mobilya Özel Koleksiyon"
+                fill
+                priority={i === 0}
+                loading={i === 0 ? undefined : 'lazy'}
+                sizes="100vw"
+                className={`${styles.centerpieceImg} ${isActive ? (i % 2 === 0 ? styles.cinematicA : styles.cinematicB) : ''}`}
+              />
+            </div>
           </div>
         );
       })}
@@ -130,7 +141,6 @@ export default function HeroCarousel({
                 className={`${styles.indicator} ${i === active ? styles.indicatorActive : ''}`}
                 onClick={() => setActive(i)}
                 aria-label={`${i + 1}. görseli göster`}
-                aria-current={i === active ? 'true' : undefined}
               />
             ))}
           </div>

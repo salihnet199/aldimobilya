@@ -1,70 +1,78 @@
-/* HeroSection.module.css — Luxury Editorial Haute-Couture Split Showcase */
+/* HeroSection.module.css — Full-Bleed Grand Haute-Couture Hero */
 
 .hero {
   position: relative;
-  min-height: 94vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
-  background: radial-gradient(circle at 75% 35%, rgba(184, 134, 60, 0.1) 0%, transparent 60%), #0c0b09;
   overflow: hidden;
-  padding: 120px 0 70px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+  background: #0d0c0a;
 }
 
-.ambientGlow {
+/* Media across the entire top */
+.media {
   position: absolute;
-  top: 15%;
-  right: 8%;
-  width: 550px;
-  height: 550px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.14) 0%, transparent 70%);
-  filter: blur(60px);
-  pointer-events: none;
+  inset: 0;
   z-index: 0;
 }
 
-.gridContainer {
-  display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  align-items: center;
-  gap: clamp(32px, 5vw, 64px);
-  position: relative;
+.gradientFallback {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(184, 134, 60, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(184, 134, 60, 0.06) 0%, transparent 50%),
+    linear-gradient(135deg, #17130f 0%, var(--ivory, #12100d) 50%, #090705 100%);
+}
+
+/* Delicate gradient overlay protecting text contrast without covering photography */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(13, 12, 10, 0.85) 0%, rgba(13, 12, 10, 0.20) 32%, transparent 58%),
+    linear-gradient(to right, rgba(13, 12, 10, 0.65) 0%, rgba(13, 12, 10, 0.15) 45%, transparent 72%);
   z-index: 1;
+  pointer-events: none;
+}
+
+/* Content */
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-top: 130px;
+  padding-bottom: 70px;
+  min-height: 100svh;
   width: 100%;
 }
 
-/* Left Column: Typography & CTAs */
-.leftCol {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
 .textBlock {
-  max-width: 580px;
+  max-width: 680px;
   animation: fadeInUp 0.9s ease both;
 }
 
 .eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  display: inline-block;
   margin-bottom: var(--space-4, 16px);
   color: var(--bronze-light, #e2be75);
   font-size: 0.8125rem;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   font-weight: 600;
+  animation: fadeInUp 0.9s ease 0.1s both;
 }
 
 .headline {
   display: flex;
   flex-direction: column;
   margin-bottom: var(--space-6, 24px);
-  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
-  line-height: 1.12;
+  font-size: clamp(2.6rem, 5vw, 4.5rem);
+  line-height: 1.1;
   letter-spacing: -0.02em;
+  animation: fadeInUp 0.9s ease 0.2s both;
 }
 
 .lineOne {
@@ -81,100 +89,78 @@
 }
 
 .sub {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.72);
   margin-bottom: var(--space-8, 32px);
-  max-width: 480px;
+  max-width: 500px;
   line-height: 1.6;
   font-size: 1.0625rem;
+  animation: fadeInUp 0.9s ease 0.3s both;
 }
 
 .ctas {
   display: flex;
   gap: var(--space-4, 16px);
   flex-wrap: wrap;
+  animation: fadeInUp 0.9s ease 0.4s both;
 }
 
-/* Right Column: Masterpiece Exhibition Stage */
-.rightCol {
+/* Scroll indicator */
+.scrollIndicator {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  width: 100%;
+  gap: 8px;
+  color: var(--bronze, #b8860b);
+  opacity: 0.85;
 }
 
-.stageFrame {
-  position: relative;
-  width: 100%;
-  max-width: 560px;
-  aspect-ratio: 4 / 5;
-  border-radius: 24px;
-  overflow: hidden;
-  background: #141310;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 45px rgba(184, 134, 60, 0.15);
-  transform: perspective(1000px) rotateY(-2deg);
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
+.scrollLine {
+  width: 1px;
+  height: 32px;
+  background: linear-gradient(to bottom, var(--bronze, #b8860b), transparent);
+  animation: scrollPulse 2s infinite ease-in-out;
 }
 
-.stageFrame:hover {
-  transform: perspective(1000px) rotateY(0deg) translateY(-4px);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85), 0 0 55px rgba(212, 175, 55, 0.25);
+.scrollLabel {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
-.gradientFallback {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #1f1b16 0%, #0d0c0a 100%);
+.bottomFade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(to bottom, transparent, #0c0b09);
+  z-index: 2;
+  pointer-events: none;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 960px) {
-  .hero {
-    padding: 100px 0 50px;
-    min-height: 0;
-  }
-
-  .gridContainer {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
-  .leftCol {
-    order: 2;
-    text-align: center;
-    align-items: center;
-  }
-
-  .textBlock {
-    margin: 0 auto;
-  }
-
-  .ctas {
-    justify-content: center;
-  }
-
-  .rightCol {
-    order: 1;
-  }
-
-  .stageFrame {
-    max-width: 440px;
-    transform: none;
-    margin: 0 auto;
-  }
-
-  .stageFrame:hover {
-    transform: none;
-  }
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(0.7); }
+  50% { opacity: 1; transform: scaleY(1); }
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding-top: 110px;
+    padding-bottom: 50px;
+    align-items: flex-end;
+  }
+  .scrollIndicator {
+    display: none;
   }
 }
