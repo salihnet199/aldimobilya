@@ -86,16 +86,29 @@ export default function HeroCarousel({
           key={src + i}
           className={`${styles.slide} ${i === active ? styles.slideActive : ''}`}
         >
-          <Image
-            {...imageProps(src, 2200)}
-            alt=""
-            fill
-            priority={i === 0}
-            loading={i === 0 ? undefined : 'lazy'}
-            sizes="100vw"
-            className={i === active ? styles.kenBurns : ''}
-            style={{ objectFit: 'cover' }}
-          />
+          {/* Ambient blurred backdrop: fills all edges seamlessly */}
+          <div className={styles.ambientBackdrop} aria-hidden="true">
+            <Image
+              {...imageProps(src, 1200)}
+              alt=""
+              fill
+              sizes="100vw"
+              className={styles.ambientImg}
+            />
+          </div>
+
+          {/* Ultra-HD uncropped foreground with 3D depth */}
+          <div className={styles.fgWrapper}>
+            <Image
+              {...imageProps(src, 2400)}
+              alt=""
+              fill
+              priority={i === 0}
+              loading={i === 0 ? undefined : 'lazy'}
+              sizes="100vw"
+              className={`${styles.fgImg} ${i === active ? styles.fgAnim3D : ''}`}
+            />
+          </div>
         </div>
       ))}
 
