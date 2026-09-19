@@ -65,7 +65,13 @@ export default async function RootLayout({
     logo: `${siteUrl}/logo.jpg`,
     ...(settings.phone ? { telephone: settings.phone } : {}),
     ...(settings.email ? { email: settings.email } : {}),
-    ...(settings.address ? { address: settings.address } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'Süleymaniye OSB, 3. Cadde No:7',
+      addressLocality: 'İnegöl',
+      addressRegion: 'Bursa',
+      addressCountry: 'TR',
+    },
     ...(instagram ? { sameAs: [instagram] } : {}),
   };
   return (

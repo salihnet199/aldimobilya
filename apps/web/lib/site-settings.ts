@@ -33,7 +33,7 @@ function emptySettings(): PublicSiteSettings {
     whatsapp: null,
     phone: null,
     email: null,
-    address: null,
+    address: DEFAULT_ADDRESS,
     instagram: null,
     facebook: null,
     tiktok: null,
@@ -53,6 +53,11 @@ function clean(value: string | null | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
+// Real, permanent business address — used as the default whenever the
+// admin hasn't (yet) overridden it via the settings panel. The admin
+// panel's own value always wins over this once it's set.
+const DEFAULT_ADDRESS = 'Süleymaniye OSB, 3. Cadde No:7, İnegöl / Bursa';
+
 export const getSiteSettings = cache(async (): Promise<PublicSiteSettings> => {
   try {
     const settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
@@ -63,7 +68,7 @@ export const getSiteSettings = cache(async (): Promise<PublicSiteSettings> => {
       whatsapp: clean(settings.whatsapp),
       phone: clean(settings.phone),
       email: clean(settings.email),
-      address: clean(settings.address),
+      address: clean(settings.address) ?? DEFAULT_ADDRESS,
       instagram: clean(settings.instagram),
       facebook: clean(settings.facebook),
       tiktok: clean(settings.tiktok),
