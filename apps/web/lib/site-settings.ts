@@ -162,3 +162,20 @@ export function getInstagramHref(value?: string | null): string | null {
   if (!handle) return null;
   return `https://www.instagram.com/${handle}/`;
 }
+
+/**
+ * Builds a direct Google Maps link from an address or URL.
+ *
+ * If the provided value is already a full URL (e.g. Google Maps share link),
+ * it is returned directly. Otherwise, it generates a Google Maps search URL
+ * centered on ALDi Mobilya and the business address.
+ */
+export function getGoogleMapsHref(address?: string | null): string {
+  const raw = address?.trim();
+  if (raw && (raw.startsWith('http://') || raw.startsWith('https://'))) {
+    return raw;
+  }
+  const query = raw ? `ALDi Mobilya, ${raw}` : 'ALDi Mobilya, Süleymaniye OSB, İnegöl, Bursa';
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+

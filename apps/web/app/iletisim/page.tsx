@@ -1,5 +1,11 @@
 import type { Metadata } from 'next';
-import { getSiteSettings, getWhatsAppHref, getInstagramHref, getInstagramHandle } from '@/lib/site-settings';
+import {
+  getSiteSettings,
+  getWhatsAppHref,
+  getInstagramHref,
+  getInstagramHandle,
+  getGoogleMapsHref,
+} from '@/lib/site-settings';
 import { pageMetadata } from '@/lib/seo';
 import styles from './page.module.css';
 
@@ -17,6 +23,7 @@ export default async function ContactPage() {
   const whatsappHref = getWhatsAppHref(settings.whatsapp, 'Merhaba, bilgi almak istiyorum.');
   const instagramHref = getInstagramHref(settings.instagram);
   const instagramHandle = getInstagramHandle(settings.instagram);
+  const mapsHref = getGoogleMapsHref(settings.address);
 
   return (
     <div className={styles.page}>
@@ -127,14 +134,27 @@ export default async function ContactPage() {
                   <circle cx="12" cy="10" r="3" />
                 </svg>
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <h2 className="heading-md" style={{ marginBottom: 'var(--space-1)' }}>
                   Showroom & Adres
                 </h2>
-                <p className="body-sm text-muted">
+                <p className="body-sm text-muted" style={{ marginBottom: 'var(--space-3)' }}>
                   {settings.address ??
                     'Showroom ziyaretleri ve randevu için WhatsApp üzerinden bize bildirebilirsiniz.'}
                 </p>
+                <a
+                  href={mapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-outline btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  Google Haritalar&apos;da Aç ↗
+                </a>
               </div>
             </div>
           </div>

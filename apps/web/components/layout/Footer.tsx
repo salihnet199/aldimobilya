@@ -4,6 +4,7 @@ import {
   getWhatsAppHref,
   getInstagramHref,
   getInstagramHandle,
+  getGoogleMapsHref,
 } from '@/lib/site-settings';
 import styles from './Footer.module.css';
 
@@ -15,6 +16,7 @@ export default async function Footer() {
   const instagramHandle = getInstagramHandle(settings.instagram);
   const whatsappHref = getWhatsAppHref(settings.whatsapp, 'Merhaba, bilgi almak istiyorum.');
   const whatsappIsExternal = whatsappHref.startsWith('http');
+  const mapsHref = getGoogleMapsHref(settings.address);
 
   return (
     <footer className={styles.footer} role="contentinfo">
@@ -82,7 +84,23 @@ export default async function Footer() {
                   </a>
                 </li>
               )}
-              {settings.address && <li className={styles.contactAddress}>{settings.address}</li>}
+              {settings.address && (
+                <li className={styles.contactAddress}>
+                  <a
+                    href={mapsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.addressLink}
+                    title="Google Haritalar'da aç"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>{settings.address}</span>
+                  </a>
+                </li>
+              )}
             </ul>
           )}
 

@@ -160,6 +160,26 @@
   line-height: 1.6;
 }
 
+.addressLink {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--footer-olive);
+  text-decoration: none;
+  line-height: 1.6;
+  transition: color var(--transition-fast);
+}
+
+.addressLink:hover {
+  color: var(--footer-gold);
+}
+
+.addressLink svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--footer-gold);
+}
+
 .whatsappBtn {
   display: inline-flex;
   align-items: center;
