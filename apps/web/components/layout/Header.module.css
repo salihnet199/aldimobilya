@@ -28,12 +28,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 200px;
-  height: 58px;
-  overflow: hidden;
+  width: 280px;
+  height: 80px;
   background: transparent;
 }
-.logoImg { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.logoImg { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; }
 
 .consultation { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--ink); min-height: 44px; }
 .consultation:hover { color: var(--bronze); }
@@ -60,7 +59,7 @@
 
 @media (max-width: 900px) {
   .masthead { min-height: 106px; gap: 8px; }
-  .logo { width: 160px; height: 46px; }
+  .logo { width: 200px; height: 58px; }
   .menuButton { display: flex; }
   .signature, .navigation { display: none; }
   .consultation span { display: none; }
@@ -68,6 +67,6 @@
 }
 
 @media (max-width: 380px) {
-  .logo { width: 130px; height: 38px; }
+  .logo { width: 160px; height: 46px; }
   .masthead { min-height: 96px; }
 }
