@@ -17,50 +17,16 @@
   z-index: 1;
 }
 
-/* Ambient Edge-to-Edge Canvas: expands colors and room lighting full-bleed */
-.bgCanvas {
-  position: absolute;
-  inset: -30px;
-  overflow: hidden;
-  filter: blur(40px) brightness(0.65) saturate(1.15);
-  transform: scale(1.06);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.bgCanvasImg {
+.heroImage {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
   object-position: center center !important;
   display: block;
-}
-
-/* Centerpiece Stage: displays 100% of the furniture photo uncropped from top to bottom */
-.centerpiece {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  pointer-events: none;
-  /* Feather left & right edges seamlessly into ambient background (no hard box borders) */
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
-}
-
-.centerpieceImg {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: contain !important;
-  object-position: center center !important;
-  display: block;
   will-change: transform;
-  filter: drop-shadow(0 15px 40px rgba(0, 0, 0, 0.5));
 }
 
-/* Master-crafted Cinematic Motion (Velvet Breathing) */
+/* Master-crafted Cinematic Motion (Director's Cut — Velvet Breathing) */
 @keyframes cinematicBreathA {
   0% {
     transform: scale(1.00) translate3d(0, 0, 0);
@@ -94,13 +60,8 @@
 }
 
 @media (max-width: 768px) {
-  .centerpiece {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-  
-  .centerpieceImg {
-    object-position: center 30% !important;
+  .heroImage {
+    object-position: center center !important;
   }
 }
 

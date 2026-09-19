@@ -85,29 +85,15 @@ export default function HeroCarousel({
             key={src + i}
             className={`${styles.slide} ${isActive ? styles.slideActive : ''}`}
           >
-            {/* Seamless deep background canvas extending edge-to-edge */}
-            <div className={styles.bgCanvas} aria-hidden="true">
-              <Image
-                {...imageProps(src, 1600)}
-                alt=""
-                fill
-                sizes="100vw"
-                className={styles.bgCanvasImg}
-              />
-            </div>
-
-            {/* Seamless Centerpiece: 100% full uncropped furniture with soft feather edge */}
-            <div className={styles.centerpiece}>
-              <Image
-                {...imageProps(src, 2400)}
-                alt="ALDi Mobilya Özel Koleksiyon"
-                fill
-                priority={i === 0}
-                loading={i === 0 ? undefined : 'lazy'}
-                sizes="100vw"
-                className={`${styles.centerpieceImg} ${isActive ? (i % 2 === 0 ? styles.cinematicA : styles.cinematicB) : ''}`}
-              />
-            </div>
+            <Image
+              {...imageProps(src, 2560)}
+              alt="ALDi Mobilya Özel Koleksiyon"
+              fill
+              priority={i === 0}
+              loading={i === 0 ? undefined : 'lazy'}
+              sizes="100vw"
+              className={`${styles.heroImage} ${isActive ? (i % 2 === 0 ? styles.cinematicA : styles.cinematicB) : ''}`}
+            />
           </div>
         );
       })}
