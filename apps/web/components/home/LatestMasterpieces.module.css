@@ -84,12 +84,19 @@
   display: flex;
   flex-direction: column;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform, box-shadow;
 }
 
 .card:hover {
   transform: translateY(-8px);
-  border-color: rgba(184, 134, 60, 0.45);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(184, 134, 60, 0.15);
+  border-color: rgba(184, 134, 60, 0.55);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.75), 0 0 35px -5px rgba(184, 134, 60, 0.28);
+}
+
+.card:active {
+  transform: scale(0.985);
+  transition: transform 0.15s ease;
 }
 
 /* Hero / Featured Card (First element spans 2 columns) */
@@ -97,7 +104,7 @@
   grid-column: span 2;
 }
 
-/* Image Container */
+/* Image Container with Luxury Gold Sheen */
 .imageWrap {
   position: relative;
   width: 100%;
@@ -110,14 +117,68 @@
   aspect-ratio: 16 / 9;
 }
 
-.image {
-  object-fit: cover;
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  image-rendering: -webkit-optimize-contrast;
+/* Light Reflection / Gold Shimmer Sweep across the photo */
+.imageWrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 220, 140, 0.12) 46%,
+    rgba(255, 255, 255, 0.30) 50%,
+    rgba(255, 220, 140, 0.12) 54%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 3;
 }
 
-.card:hover .image {
-  transform: scale(1.05);
+.card:hover .imageWrap::after,
+.card:active .imageWrap::after {
+  transform: translateX(120%);
+}
+
+.image {
+  object-fit: cover;
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), filter 0.85s ease;
+  image-rendering: -webkit-optimize-contrast;
+  will-change: transform;
+}
+
+.card:hover .image,
+.card:active .image {
+  transform: scale(1.06);
+  filter: brightness(1.03) contrast(1.02);
+}
+
+@keyframes mobileShimmerSweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  30% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@media (hover: none) {
+  .imageWrap::after {
+    animation: mobileShimmerSweep 7s infinite cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card:nth-child(2) .imageWrap::after {
+    animation-delay: 1.2s;
+  }
+  .card:nth-child(3) .imageWrap::after {
+    animation-delay: 2.4s;
+  }
+  .card:nth-child(4) .imageWrap::after {
+    animation-delay: 3.6s;
+  }
 }
 
 /* Top Badges */
