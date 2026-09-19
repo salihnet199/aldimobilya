@@ -74,10 +74,11 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
         <Image
           {...imageProps(active.url, 1800)}
           alt={active.alt || name}
-          fill
+          width={1800}
+          height={1200}
           priority
           sizes="(max-width: 900px) 100vw, 66vw"
-          style={{ objectFit: 'contain' }}
+          style={{ width: '100%', height: 'auto', display: 'block' }}
         />
         <span className={styles.expandHint} aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
