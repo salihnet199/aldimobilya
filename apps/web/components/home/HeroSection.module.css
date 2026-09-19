@@ -1,199 +1,180 @@
-/* HeroSection.module.css — light ivory / ink / bronze, photography first */
+/* HeroSection.module.css — Luxury Editorial Haute-Couture Split Showcase */
 
 .hero {
   position: relative;
-  min-height: 100svh;
+  min-height: 94vh;
   display: flex;
   align-items: center;
+  background: radial-gradient(circle at 75% 35%, rgba(184, 134, 60, 0.1) 0%, transparent 60%), #0c0b09;
   overflow: hidden;
+  padding: 120px 0 70px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.12);
 }
 
-/* Media */
-.media {
+.ambientGlow {
   position: absolute;
-  inset: 0;
+  top: 15%;
+  right: 8%;
+  width: 550px;
+  height: 550px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.14) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
   z-index: 0;
 }
 
-/* Shown when no hero images are configured: a quiet ivory wash instead of the
-   old dark gradient, so the ink headline stays legible. */
-.gradientFallback {
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(ellipse at 30% 40%, rgba(184, 134, 60, 0.10) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 80%, rgba(184, 134, 60, 0.06) 0%, transparent 50%),
-    linear-gradient(135deg, #17130f 0%, var(--ivory) 50%, #090705 100%);
-}
-
-/* Overlay — two directions so the copy stays legible where it sits
-   (bottom-left) while the rest of the photography stays open. A single
-   heavy left-to-right wash would flatten the whole image. */
-.overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(to top, rgba(16, 14, 10, 0.80) 0%, rgba(16, 14, 10, 0.34) 34%, transparent 62%),
-    linear-gradient(to right, rgba(16, 14, 10, 0.50) 0%, rgba(16, 14, 10, 0.16) 46%, transparent 72%);
-  z-index: 1;
-}
-
-.heroPlain .overlay {
-  display: none;
-}
-
-/* Content */
-.content {
+.gridContainer {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  align-items: center;
+  gap: clamp(32px, 5vw, 64px);
   position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding-top: 120px;
-  padding-bottom: 80px;
-  min-height: 100svh;
+  z-index: 1;
   width: 100%;
+}
+
+/* Left Column: Typography & CTAs */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .textBlock {
-  max-width: 700px;
+  max-width: 580px;
   animation: fadeInUp 0.9s ease both;
 }
 
 .eyebrow {
-  display: inline-block;
-  margin-bottom: var(--space-6);
-  color: var(--bronze-light);
-  animation: fadeInUp 0.9s ease 0.1s both;
-}
-
-.heroPlain .eyebrow {
-  color: var(--bronze);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-4, 16px);
+  color: var(--bronze-light, #e2be75);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 600;
 }
 
 .headline {
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--space-6);
-  animation: fadeInUp 0.9s ease 0.2s both;
+  margin-bottom: var(--space-6, 24px);
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
 .lineOne {
-  color: var(--on-media);
-}
-
-.heroPlain .lineOne {
-  color: var(--ink);
+  color: #ffffff;
 }
 
 .lineTwo {
   font-style: italic;
-  line-height: 1;
-  background: linear-gradient(135deg, var(--bronze-light), var(--bronze), var(--bronze-dark));
+  font-family: serif;
+  background: linear-gradient(135deg, #f5d77f, #b8860b, #e2be75);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .sub {
-  color: var(--on-media-muted);
-  margin-bottom: var(--space-10);
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: var(--space-8, 32px);
   max-width: 480px;
-  animation: fadeInUp 0.9s ease 0.3s both;
-}
-
-.heroPlain .sub {
-  color: var(--ink-soft);
+  line-height: 1.6;
+  font-size: 1.0625rem;
 }
 
 .ctas {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-4, 16px);
   flex-wrap: wrap;
-  animation: fadeInUp 0.9s ease 0.4s both;
 }
 
-/* Scroll Indicator */
-.scrollIndicator {
+/* Right Column: Masterpiece Exhibition Stage */
+.rightCol {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: var(--space-3);
-  animation: fadeIn 1.2s ease 0.8s both;
-  padding-bottom: var(--space-2);
+  width: 100%;
 }
 
-.scrollLine {
-  width: 1px;
-  height: 60px;
-  background: linear-gradient(to bottom, var(--bronze-light), transparent);
-  display: block;
-  animation: scrollPulse 2s ease-in-out infinite;
+.stageFrame {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 4 / 5;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #141310;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 45px rgba(184, 134, 60, 0.15);
+  transform: perspective(1000px) rotateY(-2deg);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
 }
 
-@keyframes scrollPulse {
-  0%, 100% { opacity: 1; transform: scaleY(1); }
-  50%       { opacity: 0.4; transform: scaleY(0.7); }
+.stageFrame:hover {
+  transform: perspective(1000px) rotateY(0deg) translateY(-4px);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85), 0 0 55px rgba(212, 175, 55, 0.25);
 }
 
-.scrollIndicator .scrollLabel {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  letter-spacing: 0.15em;
-  font-size: 0.65rem;
-  color: var(--on-media-muted);
+.gradientFallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1f1b16 0%, #0d0c0a 100%);
 }
 
-.heroPlain .scrollIndicator .scrollLabel {
-  color: var(--ink-muted);
-}
-
-/* Bottom Fade */
-.bottomFade {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  background: linear-gradient(to top, var(--ivory), transparent);
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .content {
-    align-items: flex-end;
-    padding-bottom: 60px;
+/* Responsive Breakpoints */
+@media (max-width: 960px) {
+  .hero {
+    padding: 100px 0 50px;
+    min-height: auto;
   }
 
-  .scrollIndicator {
-    display: none;
+  .gridContainer {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .leftCol {
+    order: 2;
+    text-align: center;
+    align-items: center;
+  }
+
+  .textBlock {
+    margin: 0 auto;
   }
 
   .ctas {
-    flex-direction: column;
-    align-items: flex-start;
+    justify-content: center;
   }
 
-  .ctas .btn {
-    width: 100%;
-    justify-content: center;
+  .rightCol {
+    order: 1;
+  }
+
+  .stageFrame {
+    max-width: 440px;
+    transform: none;
+    margin: 0 auto;
+  }
+
+  .stageFrame:hover {
+    transform: none;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .textBlock,
-  .eyebrow,
-  .headline,
-  .sub,
-  .ctas,
-  .scrollIndicator {
-    animation: none;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-
-  .scrollLine {
-    animation: none;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
