@@ -2,10 +2,10 @@
 
 .section {
   position: relative;
-  background: radial-gradient(circle at 50% 0%, rgba(201, 168, 76, 0.05) 0%, transparent 60%), var(--bg-primary, #0d0d0f);
+  background: radial-gradient(circle at 50% 0%, rgba(184, 134, 60, 0.05) 0%, transparent 60%), var(--ivory);
   padding: 80px 0 100px;
   overflow: hidden;
-  border-top: 1px solid rgba(201, 168, 76, 0.12);
+  border-top: 1px solid rgba(184, 134, 60, 0.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -21,7 +21,7 @@
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: var(--accent-gold, #c9a84c);
+  color: var(--bronze);
   font-weight: 600;
   margin-bottom: 12px;
 }
@@ -32,11 +32,11 @@
   display: inline-block;
   width: 24px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent-gold, #c9a84c));
+  background: linear-gradient(90deg, transparent, var(--bronze));
 }
 
 .eyebrow::after {
-  background: linear-gradient(90deg, var(--accent-gold, #c9a84c), transparent);
+  background: linear-gradient(90deg, var(--bronze), transparent);
 }
 
 .title {
@@ -49,7 +49,7 @@
 }
 
 .titleGold {
-  background: linear-gradient(135deg, #f3e5b8 0%, #c9a84c 50%, #9e7f2b 100%);
+  background: linear-gradient(135deg, #e8cf9a 0%, #b8863c 50%, #7c4c0a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -88,8 +88,8 @@
 
 .card:hover {
   transform: translateY(-8px);
-  border-color: rgba(201, 168, 76, 0.45);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(201, 168, 76, 0.15);
+  border-color: rgba(184, 134, 60, 0.45);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 25px rgba(184, 134, 60, 0.15);
 }
 
 /* Hero / Featured Card (First element spans 2 columns) */
@@ -134,7 +134,7 @@
 }
 
 .newBadge {
-  background: linear-gradient(135deg, rgba(201, 168, 76, 0.95), rgba(160, 126, 38, 0.95));
+  background: linear-gradient(135deg, rgba(184, 134, 60, 0.95), rgba(124, 76, 10, 0.95));
   color: #0d0d0f;
   font-size: 0.75rem;
   font-weight: 700;
@@ -184,7 +184,7 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--accent-gold, #c9a84c);
+  color: var(--bronze);
   font-weight: 600;
 }
 
@@ -198,7 +198,7 @@
 }
 
 .card:hover .roomName {
-  color: var(--accent-gold, #c9a84c);
+  color: var(--bronze);
 }
 
 .cardDesc {
@@ -233,14 +233,14 @@
 }
 
 .card:hover .exploreLink {
-  color: var(--accent-gold, #c9a84c);
+  color: var(--bronze);
   gap: 10px;
 }
 
 .arrowIcon {
   width: 16px;
   height: 16px;
-  color: var(--accent-gold, #c9a84c);
+  color: var(--bronze);
   transition: transform 0.2s ease;
 }
 
@@ -265,7 +265,7 @@
   padding: 15px 36px;
   background: transparent;
   color: #ffffff;
-  border: 1px solid rgba(201, 168, 76, 0.6);
+  border: 1px solid rgba(184, 134, 60, 0.6);
   border-radius: 999px;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -276,10 +276,10 @@
 }
 
 .viewAllBtn:hover {
-  background: var(--accent-gold, #c9a84c);
+  background: var(--bronze);
   color: #0d0d0f;
-  border-color: var(--accent-gold, #c9a84c);
-  box-shadow: 0 8px 30px rgba(201, 168, 76, 0.3);
+  border-color: var(--bronze);
+  box-shadow: 0 8px 30px rgba(184, 134, 60, 0.3);
   transform: translateY(-2px);
 }
 
