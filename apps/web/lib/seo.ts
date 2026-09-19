@@ -2,10 +2,36 @@ import type { Metadata } from 'next';
 import { safeMediaHref } from './media';
 
 function configuredOrigin(): string {
-  const value = process.env.NEXT_PUBLIC_SITE_URL || 'https://aldimobilya.com';
-  const url = new URL(value);
-  if (!['https:', 'http:'].includes(url.protocol)) throw new Error('NEXT_PUBLIC_SITE_URL must be an HTTP(S) origin.');
-  return url.origin;
+  let raw = (process.env.NEXT_PUBLIC_SITE_URL || '').trim();
+
+  // If running in production / on Vercel and the configured URL is empty or mistakenly localhost,
+  // automatically fall back to Vercel production domain or the canonical production URL.
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+  const isLocalHost = !raw || raw.includes('localhost') || raw.includes('127.0.0.1');
+
+  if (isProduction && isLocalHost) {
+    const vercelHost = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+                       process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+                       process.env.NEXT_PUBLIC_VERCEL_URL ||
+                       process.env.VERCEL_URL;
+    raw = vercelHost ? `https://${vercelHost}` : 'https://aldimobilya.vercel.app';
+  } else if (!raw) {
+    raw = 'https://aldimobilya.vercel.app';
+  }
+
+  if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+    raw = `https://${raw}`;
+  }
+
+  try {
+    const url = new URL(raw);
+    if (!['https:', 'http:'].includes(url.protocol)) {
+      return 'https://aldimobilya.vercel.app';
+    }
+    return url.origin;
+  } catch {
+    return 'https://aldimobilya.vercel.app';
+  }
 }
 export const siteUrl = configuredOrigin();
 export function pageMetadata(title: string, description: string, path: string, image?: string | null): Metadata {

@@ -1,8 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { prisma } from '@aldimobilya/db';
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://aldimobilya.com';
-
+import { siteUrl } from '@/lib/seo';
 // Rooms are added and hidden from the admin panel. The sitemap is regenerated
 // hourly rather than per request, so crawlers still discover new models
 // quickly without a database query on every hit.
