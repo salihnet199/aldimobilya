@@ -7,6 +7,9 @@ export default async function InstagramSection() {
   const instagramHandle = getInstagramHandle(settings.instagram);
   const isExternal = instagramHref !== null;
 
+  // Hide section entirely when no Instagram account is configured
+  if (!instagramHref) return null;
+
   return (
     <section className={`section ${styles.section}`} aria-labelledby="instagram-heading">
       <div className="container">

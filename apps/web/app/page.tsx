@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/seo';
 import HeroSection from '@/components/home/HeroSection';
 import LatestMasterpieces from '@/components/home/LatestMasterpieces';
+import LatestVideos from '@/components/home/LatestVideos';
 import WhyUs from '@/components/home/WhyUs';
 import CategoryGroups from '@/components/home/CategoryGroups';
 import AboutSnippet from '@/components/home/AboutSnippet';
@@ -22,6 +23,7 @@ export default function HomePage() {
     <>
       <HeroSection />
       <LatestMasterpieces />
+      <LatestVideos />
       <WhyUs />
       <CategoryGroups />
       <AboutSnippet />
