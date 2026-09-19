@@ -77,7 +77,7 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
           fill
           priority
           sizes="(max-width: 900px) 100vw, 66vw"
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: 'contain' }}
         />
         <span className={styles.expandHint} aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
