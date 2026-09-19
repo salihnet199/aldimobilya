@@ -2,7 +2,9 @@
 
 .hero {
   position: relative;
-  min-height: 100svh;
+  height: calc(100svh - var(--header-h));
+  min-height: 520px;
+  max-height: 880px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -43,20 +45,20 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding-top: 130px;
-  padding-bottom: 70px;
-  min-height: 100svh;
+  padding-top: 28px;
+  padding-bottom: 40px;
+  height: 100%;
   width: 100%;
 }
 
 .textBlock {
-  max-width: 680px;
+  max-width: 620px;
   animation: fadeInUp 0.9s ease both;
 }
 
 .eyebrow {
   display: inline-block;
-  margin-bottom: var(--space-4, 16px);
+  margin-bottom: var(--space-3, 12px);
   color: var(--bronze-light, #e2be75);
   font-size: 0.8125rem;
   text-transform: uppercase;
@@ -68,8 +70,8 @@
 .headline {
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--space-6, 24px);
-  font-size: clamp(2.6rem, 5vw, 4.5rem);
+  margin-bottom: var(--space-4, 16px);
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
   animation: fadeInUp 0.9s ease 0.2s both;
@@ -90,10 +92,10 @@
 
 .sub {
   color: rgba(255, 255, 255, 0.72);
-  margin-bottom: var(--space-8, 32px);
-  max-width: 500px;
-  line-height: 1.6;
-  font-size: 1.0625rem;
+  margin-bottom: var(--space-6, 24px);
+  max-width: 480px;
+  line-height: 1.55;
+  font-size: 1rem;
   animation: fadeInUp 0.9s ease 0.3s both;
 }
 
@@ -155,9 +157,13 @@
 }
 
 @media (max-width: 768px) {
+  .hero {
+    height: calc(100svh - var(--header-h));
+    min-height: 480px;
+  }
   .content {
-    padding-top: 110px;
-    padding-bottom: 50px;
+    padding-top: 20px;
+    padding-bottom: 36px;
     align-items: flex-end;
   }
   .scrollIndicator {

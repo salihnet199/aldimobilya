@@ -33,7 +33,7 @@
   --on-media-muted:  rgba(255, 255, 255, 0.72);
 
   /* Sticky header height — keep in sync with components/layout/Header.module.css */
-  --header-h:       169px;
+  --header-h:       104px;
 
   /* --- Legacy aliases ---------------------------------------------------
      Older modules reference the original dark-theme names. They are kept as
@@ -852,6 +852,6 @@ html.has-custom-cursor .room-card {
 /* Header collapses to just the masthead below the navigation breakpoint. */
 @media (max-width: 900px) {
   :root {
-    --header-h: 106px;
+    --header-h: 64px;
   }
 }
