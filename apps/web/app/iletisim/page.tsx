@@ -10,7 +10,7 @@ export const metadata: Metadata = pageMetadata(
 );
 
 // Contact details are admin-managed; ISR refreshes them within 5 minutes.
-export const revalidate = 300;
+export const revalidate = 0;
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();
@@ -172,3 +172,4 @@ export default async function ContactPage() {
     </div>
   );
 }
+

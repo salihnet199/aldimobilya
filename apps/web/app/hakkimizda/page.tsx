@@ -11,7 +11,7 @@ export const metadata: Metadata = pageMetadata(
 );
 
 // The page is static copy plus the admin-managed contact link; ISR is enough.
-export const revalidate = 300;
+export const revalidate = 0;
 
 export default async function AboutPage() {
   const settings = await getSiteSettings();
@@ -88,3 +88,4 @@ export default async function AboutPage() {
     </div>
   );
 }
+

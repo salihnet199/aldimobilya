@@ -10,7 +10,7 @@ import { jsonLd, siteUrl } from '@/lib/seo';
 
 // Settings are admin-managed; ISR refreshes them within 5 minutes while every
 // page stays CDN-cached instead of hitting Postgres per request.
-export const revalidate = 300;
+export const revalidate = 0;
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -89,3 +89,4 @@ export default async function RootLayout({
     </html>
   );
 }
+

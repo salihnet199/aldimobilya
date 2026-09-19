@@ -13,7 +13,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const revalidate = 300;
+export const revalidate = 0;
 
 // Hidden rooms (isVisible = false) must never be reachable on the public site,
 // so the visibility flag is part of the lookup rather than a post-filter.

@@ -15,7 +15,7 @@ export const metadata: Metadata = pageMetadata(
 
 // Rooms are authored in the admin panel; ISR keeps the catalogue CDN-cached
 // and refreshes within 5 minutes of a publish.
-export const revalidate = 300;
+export const revalidate = 0;
 
 export default async function KatalogPage({
   searchParams,
@@ -122,3 +122,4 @@ export default async function KatalogPage({
     </div>
   );
 }
+

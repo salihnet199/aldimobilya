@@ -4,7 +4,7 @@ import { siteUrl } from '@/lib/seo';
 // Rooms are added and hidden from the admin panel. The sitemap is regenerated
 // hourly rather than per request, so crawlers still discover new models
 // quickly without a database query on every hit.
-export const revalidate = 3600;
+export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
@@ -35,3 +35,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [...staticPages, ...roomPages];
 }
+

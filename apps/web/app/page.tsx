@@ -9,7 +9,7 @@ import InstagramSection from '@/components/home/InstagramSection';
 import ContactBanner from '@/components/home/ContactBanner';
 
 // Catalogue content is admin-authored; 5-minute ISR keeps pages CDN-cached.
-export const revalidate = 300;
+export const revalidate = 0;
 
 export const metadata: Metadata = pageMetadata(
   'Lüks Yatak Odası Tasarımları',
@@ -30,3 +30,4 @@ export default function HomePage() {
     </>
   );
 }
+

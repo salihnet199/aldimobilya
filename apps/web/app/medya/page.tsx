@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata(
 
 // Videos are published from the admin panel. A short ISR window keeps the page
 // fast and still reflects a publish within 5 minutes.
-export const revalidate = 300;
+export const revalidate = 0;
 
 async function getPublicVideos() {
   try {
@@ -119,3 +119,4 @@ export default async function MedyaPage() {
     </div>
   );
 }
+
