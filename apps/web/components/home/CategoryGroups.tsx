@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { prisma } from '@aldimobilya/db';
-import { imageProps } from '@/lib/media';
+import AdaptiveImage from '@/components/ui/AdaptiveImage';
 import styles from './CategoryGroups.module.css';
 
 interface CategoryGroup {
@@ -81,8 +80,8 @@ export default async function CategoryGroups() {
               >
                 <div className={styles.media}>
                   {group.image ? (
-                    <Image
-                      {...imageProps(group.image)}
+                    <AdaptiveImage
+                      src={group.image}
                       alt=""
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"

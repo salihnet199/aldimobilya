@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
+import AdaptiveImage from '@/components/ui/AdaptiveImage';
 import { getSiteSettings, getInstagramHref } from '@/lib/site-settings';
 import { listPublicRooms } from '@/lib/rooms';
-import { imageProps } from '@/lib/media';
 import { pageMetadata } from '@/lib/seo';
 import styles from './page.module.css';
 
@@ -78,8 +77,8 @@ export default async function KatalogPage({
                   className={`room-card ${styles.card}`}
                   aria-label={`${displayName} — detayları gör`}
                 >
-                  <Image
-                    {...imageProps(displayImage)}
+                  <AdaptiveImage
+                    src={displayImage}
                     alt={displayName}
                     fill
                     sizes="(max-width: 640px) calc(50vw - 12px), (max-width: 1024px) calc(50vw - 24px), calc(33vw - 24px)"

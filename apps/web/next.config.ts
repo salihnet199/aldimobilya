@@ -2,10 +2,10 @@ import type { NextConfig } from 'next';
 
 const csp = [
   "default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'none'",
-  "form-action 'self'", "script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''),
-  "style-src 'self' 'unsafe-inline'", "font-src 'self' data:", "img-src 'self' https: data: blob:",
-  "media-src 'self' https: blob:", "connect-src 'self' https:",
-  "frame-src https://www.youtube-nocookie.com https://player.vimeo.com",
+  "form-action 'self'", "script-src 'self' 'unsafe-inline' https://vercel.live" + (process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''),
+  "style-src 'self' 'unsafe-inline' https://vercel.live", "font-src 'self' data: https://vercel.live", "img-src 'self' https: data: blob: https://vercel.live https://vercel.com",
+  "media-src 'self' https: blob:", "connect-src 'self' https: wss://ws-us3.pusher.com https://vercel.live",
+  "frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://vercel.live",
 ].join('; ');
 const nextConfig: NextConfig = {
   poweredByHeader: false,
