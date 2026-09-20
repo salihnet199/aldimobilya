@@ -254,8 +254,9 @@
   scroll-behavior: smooth;
   padding: 4px 2px;
   width: 100%;
-  /* Prevent thumb strip from causing horizontal page overflow */
-  -webkit-overflow-scrolling: touch;
+  /* overscroll-behavior-x prevents the thumb strip from triggering page-level
+     horizontal scroll on touch devices. Momentum scrolling is handled natively
+     by the browser (no -webkit-overflow-scrolling needed since iOS 13+). */
   overscroll-behavior-x: contain;
 }
 
