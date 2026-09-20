@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { imageProps } from '@/lib/media';
+import { getDeterministicPreset, getPresetClassName, registerMotionObserver } from '@/lib/motion/motion-controller';
 import styles from './RoomGallery.module.css';
 
 export interface GalleryImage {
@@ -27,6 +28,7 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const dialog = useRef<HTMLDialogElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -34,6 +36,13 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
 
   const safeIndex = Math.min(activeIndex, images.length - 1);
   const total = images.length;
+
+  // Viewport-aware power gating via shared observer
+  useEffect(() => {
+    const el = galleryRef.current;
+    if (!el) return;
+    return registerMotionObserver(el);
+  }, []);
 
   // Respect prefers-reduced-motion via useSyncExternalStore (React-idiomatic pattern)
   const reducedMotion = useSyncExternalStore(
@@ -121,7 +130,7 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
   if (total === 0) return null;
 
   return (
-    <div className={styles.gallery} aria-label={`${name} görsel galerisi`}>
+    <div ref={galleryRef} className={styles.gallery} aria-label={`${name} görsel galerisi`}>
       {/* --- Main Slider Viewport --- */}
       <div
         className={styles.sliderViewport}
@@ -135,30 +144,46 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
           className={styles.sliderTrack}
           style={{ transform: `translateX(-${safeIndex * 100}%)` }}
         >
-          {images.map((img, idx) => (
-            <div
-              key={img.id}
-              className={styles.slideItem}
-              onClick={() => openLightbox(idx)}
-              role="button"
-              tabIndex={idx === safeIndex ? 0 : -1}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(idx); }
-              }}
-              aria-label={`${name} — ${idx + 1}. görseli tam ekran göster`}
-            >
-              <Image
-                {...imageProps(img.url)}
-                alt={img.alt || `${name} - fotoğraf ${idx + 1}`}
-                fill
-                priority={idx === 0}
-                loading={idx < 2 ? 'eager' : 'lazy'}
-                // Gallery column is ~66vw on desktop, full width on mobile
-                sizes="(max-width: 600px) 100vw, (max-width: 900px) 100vw, (max-width: 1100px) calc(100vw - 420px), calc(100vw - 520px)"
-                className={styles.slideImg}
-              />
-            </div>
-          ))}
+          {images.map((img, idx) => {
+            const isActive = idx === safeIndex;
+            // Intelligent preloading: current, next, and previous image
+            const isAdjacent =
+              Math.abs(idx - safeIndex) <= 1 ||
+              (safeIndex === 0 && idx === total - 1) ||
+              (safeIndex === total - 1 && idx === 0);
+
+            const motionClass = isActive && !reducedMotion
+              ? getPresetClassName(getDeterministicPreset(idx, 'gallery'))
+              : '';
+
+            return (
+              <div
+                key={img.id}
+                className={styles.slideItem}
+                onClick={() => openLightbox(idx)}
+                role="button"
+                tabIndex={isActive ? 0 : -1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openLightbox(idx);
+                  }
+                }}
+                aria-label={`${name} — ${idx + 1}. görseli tam ekran göster`}
+              >
+                <Image
+                  {...imageProps(img.url)}
+                  alt={img.alt || `${name} - fotoğraf ${idx + 1}`}
+                  fill
+                  priority={idx === 0}
+                  loading={isAdjacent ? 'eager' : 'lazy'}
+                  // Gallery column is ~66vw on desktop, full width on mobile
+                  sizes="(max-width: 600px) 100vw, (max-width: 900px) 100vw, (max-width: 1100px) calc(100vw - 420px), calc(100vw - 520px)"
+                  className={`${styles.slideImg} ${motionClass}`}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Overlay controls */}

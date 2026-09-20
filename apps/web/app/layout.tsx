@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
+import '@/lib/motion/motion-presets.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import CursorLayer from '@/components/ui/CursorLayer';

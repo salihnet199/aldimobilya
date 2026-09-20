@@ -1,0 +1,395 @@
+/* =============================================================================
+   ALDi Mobilya — Motion Design System & Presets
+   Quiet Luxury + Cinematic + Editorial Image Presentation
+   Composite-only animations (transform, opacity, clip-path) for 60 FPS performance.
+   ============================================================================= */
+
+:root {
+  /* Motion Duration Tokens */
+  --motion-duration-fast:      250ms;
+  --motion-duration-base:      500ms;
+  --motion-duration-slow:      900ms;
+  --motion-duration-cinematic: 1800ms;
+  --motion-duration-drift:     12000ms;
+
+  /* Motion Easing Tokens (Quiet Luxury Curve Palette) */
+  --motion-ease-luxury:        cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-cinematic:     cubic-bezier(0.25, 1, 0.5, 1);
+  --motion-ease-editorial:     cubic-bezier(0.77, 0, 0.175, 1);
+  --motion-ease-out-quint:     cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* =============================================================================
+   GPU-Accelerated Keyframes (Composite-only)
+   ============================================================================= */
+
+/* 1. Cinematic Zoom In */
+@keyframes motionZoomIn {
+  from { transform: scale(1.000) translate3d(0, 0, 0); }
+  to   { transform: scale(1.055) translate3d(0, 0, 0); }
+}
+
+/* 2. Cinematic Zoom Out */
+@keyframes motionZoomOut {
+  from { transform: scale(1.055) translate3d(0, 0, 0); }
+  to   { transform: scale(1.000) translate3d(0, 0, 0); }
+}
+
+/* 3. Pan Left */
+@keyframes motionPanLeft {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to   { transform: scale(1.04) translate3d(-14px, 0, 0); }
+}
+
+/* 4. Pan Right */
+@keyframes motionPanRight {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to   { transform: scale(1.04) translate3d(14px, 0, 0); }
+}
+
+/* 5. Pan Up */
+@keyframes motionPanUp {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to   { transform: scale(1.04) translate3d(0, -10px, 0); }
+}
+
+/* 6. Pan Down */
+@keyframes motionPanDown {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to   { transform: scale(1.04) translate3d(0, 10px, 0); }
+}
+
+/* 7. Cross Fade */
+@keyframes motionCrossFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 8. Directional Slide (Left to Right) */
+@keyframes motionSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-24px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 8. Directional Slide (Right to Left) */
+@keyframes motionSlideInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 9. Blur Reveal (capped at 4px to prevent GPU penalty) */
+@keyframes motionBlurReveal {
+  from {
+    opacity: 0.4;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* 10. Mask Reveal (Geometric Inset Wipe) */
+@keyframes motionMaskReveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* 11. Vertical Reveal (Top to Bottom) */
+@keyframes motionVerticalReveal {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* 12. Horizontal Reveal (Right to Left) */
+@keyframes motionHorizontalReveal {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* 13. Scale + Fade */
+@keyframes motionScaleFade {
+  from {
+    opacity: 0;
+    transform: scale(1.03) translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.00) translate3d(0, 0, 0);
+  }
+}
+
+/* 14. Parallax Subtle */
+@keyframes motionParallaxSubtle {
+  from { transform: translate3d(0, -6px, 0); }
+  to   { transform: translate3d(0, 6px, 0); }
+}
+
+/* 15. Layered Parallax (card accent shift) */
+@keyframes motionLayeredParallax {
+  from { transform: translate3d(0, 4px, 0); }
+  to   { transform: translate3d(0, -4px, 0); }
+}
+
+/* 16. Image Depth */
+@keyframes motionImageDepth {
+  from { transform: perspective(900px) translate3d(0, 0, 0); }
+  to   { transform: perspective(900px) translate3d(0, -4px, 8px); }
+}
+
+/* 17. Focus Pull */
+@keyframes motionFocusPull {
+  from {
+    filter: brightness(1.08) contrast(0.96);
+    transform: scale(1.02);
+  }
+  to {
+    filter: brightness(1.00) contrast(1.00);
+    transform: scale(1.00);
+  }
+}
+
+/* 18. Editorial Reveal */
+@keyframes motionEditorialReveal {
+  0% {
+    opacity: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  }
+  100% {
+    opacity: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+/* 19. Gallery Transition */
+@keyframes motionGalleryTransition {
+  from {
+    opacity: 0.88;
+    transform: scale(1.018);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.000);
+  }
+}
+
+/* 20. Hero Velvet Breathing (Cycle A) */
+@keyframes motionHeroVelvetA {
+  0% {
+    transform: scale(1.000) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.035) translate3d(0, -6px, 0);
+  }
+  100% {
+    transform: scale(1.000) translate3d(0, 0, 0);
+  }
+}
+
+/* 20. Hero Velvet Breathing (Cycle B) */
+@keyframes motionHeroVelvetB {
+  0% {
+    transform: scale(1.025) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.000) translate3d(-6px, -4px, 0);
+  }
+  100% {
+    transform: scale(1.025) translate3d(0, 0, 0);
+  }
+}
+
+/* =============================================================================
+   Preset Utility Classes & Viewport Gating
+   ============================================================================= */
+
+/* Continuous breathing presets: gated by viewport visibility */
+.motion-cinematic-zoom-in {
+  animation: motionZoomIn var(--motion-duration-drift) var(--motion-ease-cinematic) forwards;
+}
+
+.motion-cinematic-zoom-out {
+  animation: motionZoomOut var(--motion-duration-drift) var(--motion-ease-cinematic) forwards;
+}
+
+.motion-pan-left {
+  animation: motionPanLeft var(--motion-duration-drift) var(--motion-ease-cinematic) forwards;
+}
+
+.motion-pan-right {
+  animation: motionPanRight var(--motion-duration-drift) var(--motion-ease-cinematic) forwards;
+}
+
+.motion-pan-up {
+  animation: motionPanUp var(--motion-duration-drift) var(--motion-ease-cinematic) forwards;
+}
+
+.motion-pan-down {
+  animation: motionPanDown var(--motion-duration-drift) var(--motion-ease-cinematic) forwards;
+}
+
+.motion-cross-fade {
+  animation: motionCrossFade var(--motion-duration-cinematic) var(--motion-ease-luxury) forwards;
+}
+
+.motion-slide-left {
+  animation: motionSlideInLeft var(--motion-duration-slow) var(--motion-ease-luxury) forwards;
+}
+
+.motion-slide-right {
+  animation: motionSlideInRight var(--motion-duration-slow) var(--motion-ease-luxury) forwards;
+}
+
+.motion-blur-reveal {
+  animation: motionBlurReveal var(--motion-duration-slow) var(--motion-ease-luxury) forwards;
+}
+
+.motion-mask-reveal {
+  animation: motionMaskReveal var(--motion-duration-slow) var(--motion-ease-editorial) forwards;
+}
+
+.motion-vertical-reveal {
+  animation: motionVerticalReveal var(--motion-duration-slow) var(--motion-ease-editorial) forwards;
+}
+
+.motion-horizontal-reveal {
+  animation: motionHorizontalReveal var(--motion-duration-slow) var(--motion-ease-editorial) forwards;
+}
+
+.motion-scale-fade {
+  animation: motionScaleFade var(--motion-duration-slow) var(--motion-ease-luxury) forwards;
+}
+
+.motion-image-depth {
+  animation: motionImageDepth var(--motion-duration-slow) var(--motion-ease-luxury) forwards;
+}
+
+.motion-focus-pull {
+  animation: motionFocusPull var(--motion-duration-slow) var(--motion-ease-luxury) forwards;
+}
+
+.motion-editorial-reveal {
+  animation: motionEditorialReveal var(--motion-duration-cinematic) var(--motion-ease-editorial) forwards;
+}
+
+.motion-gallery-transition {
+  animation: motionGalleryTransition var(--motion-duration-base) var(--motion-ease-out-quint) forwards;
+}
+
+.motion-hero-velvet-a {
+  animation: motionHeroVelvetA var(--motion-duration-drift) var(--motion-ease-cinematic) infinite;
+}
+
+.motion-hero-velvet-b {
+  animation: motionHeroVelvetB var(--motion-duration-drift) var(--motion-ease-cinematic) infinite;
+}
+
+/* =============================================================================
+   Viewport Power Management (Zero Idle GPU Cost)
+   When an element is tagged with data-motion-active="false", animation pauses.
+   ============================================================================= */
+
+[data-motion-active="false"] {
+  animation-play-state: paused !important;
+}
+
+/* =============================================================================
+   Scroll Reveal Base Classes
+   ============================================================================= */
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+  transition: opacity 0.8s var(--motion-ease-luxury), transform 0.8s var(--motion-ease-luxury);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal[data-revealed="true"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
+/* Stagger delay helpers with hard cap */
+.stagger-1 { transition-delay: 50ms; }
+.stagger-2 { transition-delay: 100ms; }
+.stagger-3 { transition-delay: 150ms; }
+.stagger-4 { transition-delay: 200ms; }
+.stagger-5 { transition-delay: 250ms; }
+.stagger-6 { transition-delay: 300ms; }
+
+/* =============================================================================
+   Mobile / Touch Optimization
+   Suppress infinite drift loops & heavy filters on battery-sensitive touch screens
+   ============================================================================= */
+
+@media (hover: none) or (max-width: 768px) {
+  .motion-blur-reveal {
+    filter: none !important;
+    animation: motionCrossFade var(--motion-duration-base) var(--motion-ease-luxury) forwards;
+  }
+  
+  .motion-cinematic-zoom-in,
+  .motion-cinematic-zoom-out,
+  .motion-pan-left,
+  .motion-pan-right,
+  .motion-pan-up,
+  .motion-pan-down {
+    /* Gentle static scale transition rather than continuous GPU strain */
+    animation-duration: var(--motion-duration-slow);
+  }
+}
+
+/* =============================================================================
+   Accessibility: Strict Reduced Motion Override
+   When prefers-reduced-motion is active, disable all continuous motion & scales
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-play-state: paused !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  [class*="motion-"] {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+  }
+}

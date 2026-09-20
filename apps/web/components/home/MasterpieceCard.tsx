@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import Link from 'next/link';
 import Image from 'next/image';
 import { imageProps } from '@/lib/media';
+import { getDeterministicPreset, getPresetClassName, registerMotionObserver } from '@/lib/motion/motion-controller';
 import styles from './LatestMasterpieces.module.css';
 
 interface MasterpieceCardProps {
@@ -65,15 +66,11 @@ export default function MasterpieceCard({ room, idx, isLead }: MasterpieceCardPr
     () => false,
   );
 
-  // IntersectionObserver: autoplay only while card is in the viewport
+  // Shared IntersectionObserver: autoplay only while card is in viewport
   useEffect(() => {
-    if (!cardRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.2 },
-    );
-    observer.observe(cardRef.current);
-    return () => observer.disconnect();
+    const el = cardRef.current;
+    if (!el) return;
+    return registerMotionObserver(el, (visible) => setIsVisible(visible));
   }, []);
 
   const step = useCallback((delta: number) => {
@@ -133,23 +130,30 @@ export default function MasterpieceCard({ room, idx, isLead }: MasterpieceCardPr
           className={styles.cardSliderTrack}
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {photos.map((photoUrl, pIdx) => (
-            <div key={photoUrl + pIdx} className={styles.cardSlideItem}>
-              <Image
-                {...imageProps(photoUrl)}
-                alt={`${displayName} - fotoğraf ${pIdx + 1}`}
-                fill
-                priority={idx === 0 && pIdx === 0}
-                loading={idx < 2 && pIdx < 2 ? 'eager' : 'lazy'}
-                sizes={
-                  isLead
-                    ? '(max-width: 680px) 100vw, (max-width: 1024px) 100vw, 66vw'
-                    : '(max-width: 680px) 100vw, (max-width: 1024px) 50vw, 33vw'
-                }
-                className={styles.image}
-              />
-            </div>
-          ))}
+          {photos.map((photoUrl, pIdx) => {
+            const isAdjacent = Math.abs(pIdx - currentIndex) <= 1;
+            const motionClass = pIdx === currentIndex && !reducedMotion
+              ? getPresetClassName(getDeterministicPreset(idx + pIdx, 'luxury'))
+              : '';
+
+            return (
+              <div key={photoUrl + pIdx} className={styles.cardSlideItem}>
+                <Image
+                  {...imageProps(photoUrl)}
+                  alt={`${displayName} - fotoğraf ${pIdx + 1}`}
+                  fill
+                  priority={idx === 0 && pIdx === 0}
+                  loading={isAdjacent && idx < 2 ? 'eager' : 'lazy'}
+                  sizes={
+                    isLead
+                      ? '(max-width: 680px) 100vw, (max-width: 1024px) 100vw, 66vw'
+                      : '(max-width: 680px) 100vw, (max-width: 1024px) 50vw, 33vw'
+                  }
+                  className={`${styles.image} ${motionClass}`}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Badges */}

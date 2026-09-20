@@ -1,14 +1,9 @@
 'use client';
 
-import {
-  useCallback,
-  useEffect,
-  useState,
-  useSyncExternalStore,
-  type FocusEvent,
-} from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FocusEvent } from 'react';
 import Image from 'next/image';
 import { imageProps } from '@/lib/media';
+import { getDeterministicPreset, getPresetClassName, registerMotionObserver } from '@/lib/motion/motion-controller';
 import styles from './HeroCarousel.module.css';
 
 const DEFAULT_INTERVAL_MS = 6500;
@@ -41,6 +36,7 @@ export default function HeroCarousel({
   const [active, setActive] = useState(0);
   const [intent, setIntent] = useState<PlaybackIntent>('auto');
   const [focusWithin, setFocusWithin] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
@@ -52,6 +48,12 @@ export default function HeroCarousel({
   const playing =
     intent === 'play' ? true : intent === 'pause' ? false : autoplay && !reducedMotion;
   const running = multiple && playing && !(focusWithin && intent !== 'play');
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    return registerMotionObserver(el);
+  }, []);
 
   useEffect(() => {
     if (!running) return;
@@ -71,6 +73,7 @@ export default function HeroCarousel({
 
   return (
     <div
+      ref={containerRef}
       className={styles.carousel}
       role="group"
       aria-roledescription="karusel"
@@ -80,8 +83,12 @@ export default function HeroCarousel({
     >
       {images.map((src, i) => {
         const isActive = i === active;
+        const motionClass = isActive && !reducedMotion
+          ? getPresetClassName(getDeterministicPreset(i, 'hero'))
+          : '';
+
         return (
-        <div
+          <div
             key={src + i}
             className={`${styles.slide} ${isActive ? styles.slideActive : ''}`}
             role="group"
@@ -95,7 +102,7 @@ export default function HeroCarousel({
               priority={i === 0}
               loading={i === 0 ? undefined : 'lazy'}
               sizes="100vw"
-              className={`${styles.heroImage} ${isActive ? (i % 2 === 0 ? styles.cinematicA : styles.cinematicB) : ''}`}
+              className={`${styles.heroImage} ${motionClass}`}
             />
           </div>
         );

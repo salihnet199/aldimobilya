@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@aldimobilya/db';
+import ScrollReveal from '@/components/ui/ScrollReveal';
 import MasterpieceCard from './MasterpieceCard';
 import styles from './LatestMasterpieces.module.css';
 
@@ -28,7 +29,7 @@ export default async function LatestMasterpieces() {
     <section className={styles.section} aria-labelledby="latest-masterpieces-heading">
       <div className="container">
         {/* Section Header */}
-        <div className={styles.header}>
+        <ScrollReveal className={styles.header}>
           <div className={styles.eyebrow}>Özel Koleksiyon & Yeni Tasarımlar</div>
           <h2 id="latest-masterpieces-heading" className={styles.title}>
             En Son Eklenen <span className={styles.titleGold}>Şaheserler</span>
@@ -38,17 +39,18 @@ export default async function LatestMasterpieces() {
             İnegöl zanaatkarlarımızın el işçiliğiyle ürettiği en yeni yatak odası ve yemek odası tasarımları.
             Her model özgün, her açı büyüleyici.
           </p>
-        </div>
+        </ScrollReveal>
 
         {/* High-Definition Photography Showcase Grid */}
         <div className={styles.grid}>
           {rooms.map((room, idx) => (
-            <MasterpieceCard
-              key={room.id}
-              room={room}
-              idx={idx}
-              isLead={idx === 0}
-            />
+            <ScrollReveal key={room.id} staggerIndex={(idx % 6) + 1}>
+              <MasterpieceCard
+                room={room}
+                idx={idx}
+                isLead={idx === 0}
+              />
+            </ScrollReveal>
           ))}
         </div>
 

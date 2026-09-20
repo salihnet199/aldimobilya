@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import AdaptiveImage from '@/components/ui/AdaptiveImage';
+import ScrollReveal from '@/components/ui/ScrollReveal';
 import { getSiteSettings, getInstagramHref } from '@/lib/site-settings';
 import { listPublicRooms } from '@/lib/rooms';
 import { pageMetadata } from '@/lib/seo';
@@ -66,31 +67,32 @@ export default async function KatalogPage({
         {/* Rooms Grid */}
         {rooms.length > 0 ? (
           <div className={styles.grid}>
-            {rooms.map((room) => {
+            {rooms.map((room, idx) => {
               const displayName = room.nameTr || room.nameEn || room.slug;
               const displayImage = room.images[0]?.url || room.heroImage;
 
               return (
-                <Link
-                  key={room.id}
-                  href={`/katalog/${room.slug}`}
-                  className={`room-card ${styles.card}`}
-                  aria-label={`${displayName} — detayları gör`}
-                >
-                  <AdaptiveImage
-                    src={displayImage}
-                    alt={displayName}
-                    fill
-                    sizes="(max-width: 640px) calc(50vw - 12px), (max-width: 1024px) calc(50vw - 24px), calc(33vw - 24px)"
-                    style={{ objectFit: 'cover' }}
-                  />
-                  <div className="room-card-overlay">
-                    <div className="room-card-info">
-                      {room.category && <p className="room-card-category">{room.category}</p>}
-                      <p className="room-card-name">{displayName}</p>
+                <ScrollReveal key={room.id} staggerIndex={(idx % 6) + 1}>
+                  <Link
+                    href={`/katalog/${room.slug}`}
+                    className={`room-card ${styles.card}`}
+                    aria-label={`${displayName} — detayları gör`}
+                  >
+                    <AdaptiveImage
+                      src={displayImage}
+                      alt={displayName}
+                      fill
+                      sizes="(max-width: 640px) calc(50vw - 12px), (max-width: 1024px) calc(50vw - 24px), calc(33vw - 24px)"
+                      style={{ objectFit: 'cover' }}
+                    />
+                    <div className="room-card-overlay">
+                      <div className="room-card-info">
+                        {room.category && <p className="room-card-category">{room.category}</p>}
+                        <p className="room-card-name">{displayName}</p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                </ScrollReveal>
               );
             })}
           </div>
