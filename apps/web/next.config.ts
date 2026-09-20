@@ -29,6 +29,20 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 480, 640, 768, 1024, 1280, 1440, 1600, 1920, 2560],
     imageSizes: [64, 96, 128, 160, 240, 320, 400, 480],
   },
+  async redirects() {
+    return [
+      {
+        source: '/koleksiyonlar',
+        destination: '/katalog',
+        permanent: true,
+      },
+      {
+        source: '/koleksiyonlar/:path*',
+        destination: '/katalog/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [{ source: '/:path*', headers: [
       { key: 'Content-Security-Policy', value: csp },
