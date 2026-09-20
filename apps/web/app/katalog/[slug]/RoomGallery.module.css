@@ -16,6 +16,8 @@
   flex-direction: column;
   gap: var(--space-3, 12px);
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* ─── Viewport / Carousel container ─────────────────────────────────────── */
@@ -23,6 +25,8 @@
 .sliderViewport {
   position: relative;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   /* Default: laptop + desktop — elegant, spacious, not viewport-eating */
   height: clamp(360px, 46vh, 600px);
   border-radius: var(--radius-xl, 16px);
