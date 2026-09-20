@@ -155,29 +155,16 @@
   filter: brightness(1.03) contrast(1.02);
 }
 
-@keyframes mobileShimmerSweep {
-  0% {
-    transform: translateX(-120%);
-  }
-  30% {
-    transform: translateX(120%);
-  }
-  100% {
-    transform: translateX(120%);
-  }
-}
+/* Mobile shimmer removed: continuous GPU animation on touch devices contradicts
+   Quiet Luxury philosophy and drains battery needlessly. The gold sheen on hover
+   (desktop only) is preserved via the ::after pseudo-element transition above. */
 
 @media (hover: none) {
+  /* Suppress shimmer transition on touch — use natural tap feedback only */
   .imageWrap::after {
-    animation: mobileShimmerSweep 7s infinite cubic-bezier(0.16, 1, 0.3, 1);
+    content: none;
   }
   .card:nth-child(2) .imageWrap::after {
-    animation-delay: 1.2s;
-  }
-  .card:nth-child(3) .imageWrap::after {
-    animation-delay: 2.4s;
-  }
-  .card:nth-child(4) .imageWrap::after {
     animation-delay: 3.6s;
   }
 }
@@ -384,6 +371,7 @@
   overflow: hidden;
 }
 
+/* Nav btns are now span[role=button] inside <Link> (avoids button-in-a nesting) */
 .cardNavBtn {
   position: absolute;
   top: 50%;
@@ -391,45 +379,46 @@
   z-index: 4;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  /* 44px minimum touch target */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(16, 14, 11, 0.75);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  border: 1px solid rgba(212, 175, 55, 0.32);
   color: #fff;
   cursor: pointer;
   opacity: 0;
-  transition: all 0.25s ease;
+  transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
   pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .card:hover .cardNavBtn,
 .card:focus-within .cardNavBtn {
-  opacity: 0.9;
+  opacity: 0.88;
 }
 
+/* On touch devices always show arrows (no hover state available) */
 @media (hover: none) {
   .cardNavBtn {
-    opacity: 0.85;
+    opacity: 0.80;
+    width: 40px;
+    height: 40px;
   }
 }
 
 .cardNavBtn:hover {
   opacity: 1;
-  background: rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.32);
   border-color: var(--bronze, #d4af37);
-  transform: translateY(-50%) scale(1.1);
+  transform: translateY(-50%) scale(1.06);
 }
 
-.cardPrevBtn {
-  left: 10px;
-}
-
-.cardNextBtn {
-  right: 10px;
-}
+.cardPrevBtn { left: 8px; }
+.cardNextBtn { right: 8px; }
 
 .dotsRow {
   position: absolute;

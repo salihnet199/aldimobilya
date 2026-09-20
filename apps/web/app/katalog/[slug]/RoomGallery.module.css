@@ -1,93 +1,123 @@
-/* RoomGallery.module.css */
+/* RoomGallery.module.css
+ * Responsive Gallery Architecture
+ *
+ * Height philosophy:
+ *   Mobile  (≤600px)  : aspect-ratio 4/3 — shows furniture comfortably, never a giant square
+ *   Tablet  (601–900) : aspect-ratio 3/2 — balanced
+ *   Laptop  (901–1280): max-height clamp keeps it from eating the viewport
+ *   Desktop (1281+)   : allow more height but cap at 620px
+ *
+ * Images use object-fit: contain — furniture edges are never cut.
+ * The dark background behind contain-ed images reads as luxury negative space.
+ */
 
 .gallery {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4, 16px);
+  gap: var(--space-3, 12px);
   width: 100%;
 }
 
-/* --- Viewport & Carousel Container --- */
+/* ─── Viewport / Carousel container ─────────────────────────────────────── */
+
 .sliderViewport {
   position: relative;
   width: 100%;
+  /* Default: laptop + desktop — elegant, spacious, not viewport-eating */
+  height: clamp(360px, 46vh, 600px);
   border-radius: var(--radius-xl, 16px);
   overflow: hidden;
   background: #0d0c0a;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(212, 175, 55, 0.14);
   touch-action: pan-y;
 }
 
-/* Continuous sliding track */
-.sliderTrack {
-  display: flex;
-  width: 100%;
-  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
-
-/* Individual Slide */
-.slideItem {
-  position: relative;
-  flex: 0 0 100%;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  background: radial-gradient(circle at center, #23201b 0%, #0a0a08 100%);
-  cursor: zoom-in;
-  -webkit-user-select: none;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+/* Tablet */
 @media (max-width: 900px) {
-  .slideItem {
+  .sliderViewport {
+    /* On tablet we switch to aspect-ratio so it adapts to the container width */
+    height: auto;
+    aspect-ratio: 3 / 2;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .sliderViewport {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-lg, 12px);
+  }
+}
+
+/* Small mobile — prevent the gallery from dominating the entire page */
+@media (max-width: 400px) {
+  .sliderViewport {
     aspect-ratio: 4 / 3;
   }
 }
 
-@media (max-width: 500px) {
-  .slideItem {
-    aspect-ratio: 1 / 1;
-  }
+/* ─── Slide track ──────────────────────────────────────────────────────── */
+
+.sliderTrack {
+  display: flex;
+  height: 100%;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
+.slideItem {
+  position: relative;
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #1e1b15 0%, #0a0a08 100%);
+  cursor: zoom-in;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/*
+ * object-fit: contain preserves the full furniture/room without any edge cropping.
+ * The subtle dark background (radial gradient on .slideItem) acts as luxury matting.
+ */
 .slideImg {
   object-fit: contain !important;
-  transition: transform 0.4s ease;
+  /* Very subtle scale on hover — signals interactivity without distortion */
+  transition: transform 0.5s ease;
 }
 
 .slideItem:hover .slideImg {
-  transform: scale(1.02);
+  transform: scale(1.015);
 }
 
-/* --- Overlay Controls --- */
+/* ─── Overlay controls (top bar) ─────────────────────────────────────────── */
+
 .overlayControls {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   pointer-events: none;
   z-index: 3;
+  gap: 8px;
 }
 
 .counterBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(16, 14, 11, 0.75);
+  background: rgba(14, 12, 9, 0.78);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  color: #f7ede2;
-  font-size: 0.8rem;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  color: #f0e6d3;
+  font-size: 0.775rem;
   font-weight: 500;
   letter-spacing: 0.05em;
   pointer-events: auto;
@@ -95,27 +125,29 @@
 
 .counterBadge svg {
   color: var(--bronze, #d4af37);
+  flex-shrink: 0;
 }
 
 .playToggleBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(16, 14, 11, 0.75);
+  background: rgba(14, 12, 9, 0.78);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #e5e5e5;
-  font-size: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+  font-size: 0.72rem;
   cursor: pointer;
   pointer-events: auto;
-  transition: all var(--transition-fast, 0.15s ease);
+  transition: all 150ms ease;
 }
 
-.playToggleBtn:hover {
-  background: rgba(212, 175, 55, 0.2);
+.playToggleBtn:hover,
+.playToggleBtn:focus-visible {
+  background: rgba(212, 175, 55, 0.22);
   border-color: var(--bronze, #d4af37);
   color: #fff;
 }
@@ -123,26 +155,28 @@
 .expandBtn {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: rgba(16, 14, 11, 0.75);
+  background: rgba(14, 12, 9, 0.78);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff;
   cursor: pointer;
   pointer-events: auto;
-  transition: all var(--transition-fast, 0.15s ease);
+  transition: all 150ms ease;
 }
 
-.expandBtn:hover {
-  background: rgba(212, 175, 55, 0.25);
+.expandBtn:hover,
+.expandBtn:focus-visible {
+  background: rgba(212, 175, 55, 0.26);
   border-color: var(--bronze, #d4af37);
   transform: scale(1.08);
 }
 
-/* --- Prev & Next Navigation Buttons --- */
+/* ─── Prev / Next nav arrows ─────────────────────────────────────────────── */
+
 .navBtn {
   position: absolute;
   top: 50%;
@@ -150,38 +184,42 @@
   z-index: 3;
   display: grid;
   place-items: center;
+  /* 44px minimum touch target */
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  background: rgba(16, 14, 11, 0.7);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(14, 12, 9, 0.72);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  color: #f7ede2;
+  color: #f0e6d3;
   cursor: pointer;
-  opacity: 0.85;
-  transition: all var(--transition-fast, 0.15s ease);
+  opacity: 0.82;
+  transition: opacity 150ms ease, background 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
-.navBtn:hover {
+.navBtn:hover,
+.navBtn:focus-visible {
   opacity: 1;
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.28);
   border-color: var(--bronze, #d4af37);
-  color: #fff;
-  transform: translateY(-50%) scale(1.08);
+  transform: translateY(-50%) scale(1.06);
 }
 
-.prevBtn {
-  left: 12px;
+.prevBtn { left: 10px; }
+.nextBtn { right: 10px; }
+
+/* On mobile, arrows sit slightly inward to avoid safe-area conflicts */
+@media (max-width: 480px) {
+  .navBtn { width: 40px; height: 40px; }
+  .prevBtn { left: 8px; }
+  .nextBtn { right: 8px; }
 }
 
-.nextBtn {
-  right: 12px;
-}
+/* ─── Autoplay progress bar ──────────────────────────────────────────────── */
 
-/* --- Dynamic Autoplay Progress Bar --- */
 @keyframes progressAnim {
-  0% { width: 0%; }
+  0%   { width: 0%; }
   100% { width: 100%; }
 }
 
@@ -189,10 +227,10 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, #b8860b, #e2be75, #f5d77f);
-  box-shadow: 0 0 8px rgba(226, 190, 117, 0.8);
-  animation: progressAnim 3.8s linear forwards;
+  box-shadow: 0 0 6px rgba(226, 190, 117, 0.7);
+  animation: progressAnim 4.5s linear forwards;
   z-index: 4;
 }
 
@@ -200,7 +238,8 @@
   animation-play-state: paused;
 }
 
-/* --- Thumbnails Strip --- */
+/* ─── Thumbnail strip ────────────────────────────────────────────────────── */
+
 .thumbsWrapper {
   position: relative;
   width: 100%;
@@ -210,63 +249,63 @@
 
 .thumbs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
   scroll-behavior: smooth;
-  padding: 6px 2px;
+  padding: 4px 2px;
   width: 100%;
+  /* Prevent thumb strip from causing horizontal page overflow */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
-.thumbs::-webkit-scrollbar {
-  height: 5px;
-}
-
+.thumbs::-webkit-scrollbar { height: 3px; }
 .thumbs::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.28);
   border-radius: 4px;
 }
 
 .thumb {
   position: relative;
-  flex: 0 0 96px;
-  aspect-ratio: 4 / 3;
+  flex: 0 0 88px;
+  height: 66px;
   padding: 0;
   border-radius: var(--radius-md, 8px);
   overflow: hidden;
   background: #141310;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  transition: all var(--transition-fast, 0.15s ease);
+  transition: border-color 150ms ease, transform 150ms ease;
+  /* 44px minimum on touch: achieved via the 66px height */
 }
 
 .thumb:hover {
-  border-color: rgba(212, 175, 55, 0.6);
-  transform: translateY(-2px);
+  border-color: rgba(212, 175, 55, 0.55);
+  transform: translateY(-1px);
+}
+
+.thumb:focus-visible {
+  outline: 2px solid var(--bronze, #d4af37);
+  outline-offset: 2px;
 }
 
 .thumbActive {
   border-color: var(--bronze, #d4af37) !important;
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
-  transform: translateY(-2px);
-}
-
-.thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+  transform: translateY(-1px);
 }
 
 .thumbIndex {
   position: absolute;
   bottom: 2px;
-  right: 4px;
-  background: rgba(0, 0, 0, 0.7);
+  right: 3px;
+  background: rgba(0, 0, 0, 0.68);
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   padding: 1px 4px;
-  border-radius: 4px;
+  border-radius: 3px;
   font-weight: 600;
+  pointer-events: none;
 }
 
 .thumbScrollBtn {
@@ -276,36 +315,26 @@
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: rgba(16, 14, 11, 0.85);
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(14, 12, 9, 0.88);
+  border: 1px solid rgba(212, 175, 55, 0.38);
   color: #fff;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 150ms ease;
 }
 
-.thumbScrollBtn:hover {
-  background: var(--bronze, #d4af37);
-  color: #000;
-}
-
-.thumbScrollLeft {
-  left: -12px;
-}
-
-.thumbScrollRight {
-  right: -12px;
-}
+.thumbScrollBtn:hover { background: var(--bronze, #d4af37); color: #000; }
+.thumbScrollLeft  { left: -11px; }
+.thumbScrollRight { right: -11px; }
 
 @media (max-width: 768px) {
-  .thumbScrollBtn {
-    display: none;
-  }
+  .thumbScrollBtn { display: none; }
 }
 
-/* --- Fullscreen Lightbox Modal --- */
+/* ─── Fullscreen lightbox ────────────────────────────────────────────────── */
+
 .lightbox {
   position: fixed;
   inset: 0;
@@ -314,9 +343,9 @@
   padding: 0;
   margin: 0;
   border: none;
-  background: rgba(10, 9, 8, 0.96);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: rgba(8, 7, 6, 0.97);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   max-width: none;
   max-height: none;
   color: #fff;
@@ -324,51 +353,45 @@
   z-index: 9999;
 }
 
-.lightbox::backdrop {
-  background: rgba(10, 9, 8, 0.96);
-}
+.lightbox::backdrop { background: rgba(8, 7, 6, 0.97); }
 
-.lightboxStage {
-  position: absolute;
-  inset: 0;
-}
+.lightboxStage { position: absolute; inset: 0; }
 
 .lightboxSlide {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.3s ease;
   display: grid;
   place-items: center;
 }
 
-.lightboxSlideActive {
-  opacity: 1;
-  z-index: 1;
-}
+.lightboxSlideActive { opacity: 1; z-index: 1; }
 
-.lightboxSlide img {
+/* Contain the image within the lightbox with generous padding for controls */
+.lightboxSlide :global(img) {
   position: relative !important;
   width: 100% !important;
   height: 100% !important;
-  max-height: calc(100dvh - 90px);
+  max-height: calc(100dvh - 100px);
   object-fit: contain !important;
-  padding: clamp(16px, 3vw, 40px);
+  padding: clamp(12px, 2.5vw, 36px);
 }
 
 .lightboxCounter {
   position: absolute;
-  top: clamp(16px, 3vw, 24px);
+  top: clamp(14px, 2.5vw, 22px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(0, 0, 0, 0.48);
   padding: 4px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
 }
 
 .lightboxNav,
@@ -377,50 +400,64 @@
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  /* Generous touch target */
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   color: #fff;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.10);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   cursor: pointer;
-  transition: all var(--transition-fast, 0.15s ease);
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .lightboxNav:hover,
-.lightboxClose:hover {
-  background: rgba(212, 175, 55, 0.35);
+.lightboxClose:hover,
+.lightboxNav:focus-visible,
+.lightboxClose:focus-visible {
+  background: rgba(212, 175, 55, 0.3);
   border-color: var(--bronze, #d4af37);
-  transform: scale(1.08);
 }
 
-.lightboxNav {
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.lightboxPrev {
-  left: clamp(14px, 3vw, 36px);
-}
-
-.lightboxNext {
-  right: clamp(14px, 3vw, 36px);
-}
+.lightboxNav { top: 50%; transform: translateY(-50%); }
+.lightboxPrev { left: clamp(12px, 2.5vw, 32px); }
+.lightboxNext { right: clamp(12px, 2.5vw, 32px); }
 
 .lightboxClose {
-  top: clamp(14px, 3vw, 24px);
-  right: clamp(14px, 3vw, 28px);
+  top: clamp(12px, 2.5vw, 22px);
+  right: clamp(12px, 2.5vw, 24px);
+  transition: background 150ms ease, border-color 150ms ease, transform 250ms ease;
 }
 
-.lightboxClose:hover {
+.lightboxClose:hover,
+.lightboxClose:focus-visible {
   transform: rotate(90deg);
+  background: rgba(212, 175, 55, 0.3);
+  border-color: var(--bronze, #d4af37);
 }
+
+/* Mobile lightbox — tighter controls */
+@media (max-width: 600px) {
+  .lightboxNav,
+  .lightboxClose {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ─── Reduced motion overrides ────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .sliderTrack,
-  .lightboxSlide {
+  .lightboxSlide,
+  .slideImg,
+  .thumb,
+  .navBtn,
+  .expandBtn,
+  .playToggleBtn,
+  .lightboxClose {
     transition: none;
   }
   .progressBar {

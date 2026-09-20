@@ -79,10 +79,10 @@ export default async function KatalogPage({
                   aria-label={`${displayName} — detayları gör`}
                 >
                   <Image
-                    {...imageProps(displayImage, 1600)}
+                    {...imageProps(displayImage)}
                     alt={displayName}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="(max-width: 640px) calc(50vw - 12px), (max-width: 1024px) calc(50vw - 24px), calc(33vw - 24px)"
                     style={{ objectFit: 'cover' }}
                   />
                   <div className="room-card-overlay">

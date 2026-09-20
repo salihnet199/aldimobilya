@@ -19,7 +19,16 @@ const nextConfig: NextConfig = {
   experimental: {
     staleTimes: { dynamic: 0, static: 30 },
   },
-  images: { remotePatterns: [{ protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' }], formats: ['image/avif', 'image/webp'] },
+  images: {
+    // Cloudinary images are delivered via a custom loader (apps/web/lib/media.ts).
+    // remotePatterns still needed for Next.js to allow the hostname in <Image src>.
+    remotePatterns: [{ protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' }],
+    formats: ['image/avif', 'image/webp'],
+    // Full responsive breakpoint ladder.  The custom loader maps these widths
+    // to Cloudinary w_<N>,c_limit transformations automatically.
+    deviceSizes: [360, 480, 640, 768, 1024, 1280, 1440, 1600, 1920, 2560],
+    imageSizes: [64, 96, 128, 160, 240, 320, 400, 480],
+  },
   async headers() {
     return [{ source: '/:path*', headers: [
       { key: 'Content-Security-Policy', value: csp },

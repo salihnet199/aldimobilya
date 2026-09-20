@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { imageProps } from '@/lib/media';
 import styles from './RoomGallery.module.css';
@@ -16,49 +16,55 @@ interface RoomGalleryProps {
   name: string;
 }
 
-const AUTOPLAY_INTERVAL = 3800; // 3.8s per slide
+// Autoplay is intentionally off by default on touch devices and with
+// reduced-motion. Users can enable it explicitly with the play/pause button.
+const AUTOPLAY_INTERVAL = 4500;
 
 export default function RoomGallery({ images, name }: RoomGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  
+
   const dialog = useRef<HTMLDialogElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const interactingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const safeIndex = Math.min(activeIndex, images.length - 1);
   const total = images.length;
+
+  // Respect prefers-reduced-motion via useSyncExternalStore (React-idiomatic pattern)
+  const reducedMotion = useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      mq.addEventListener('change', onChange);
+      return () => mq.removeEventListener('change', onChange);
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false,
+  );
 
   const step = useCallback((delta: number) => {
     setActiveIndex((i) => (i + delta + total) % total);
   }, [total]);
 
-  // Autoplay effect: moves from right to left every 3.8s
+  // Autoplay: only when explicitly enabled, not interacting, and reduced-motion is off
   useEffect(() => {
-    if (!isPlaying || isInteracting || total <= 1) return;
-
-    const timer = setInterval(() => {
-      step(1);
-    }, AUTOPLAY_INTERVAL);
-
+    if (!isPlaying || isInteracting || total <= 1 || reducedMotion) return;
+    const timer = setInterval(() => step(1), AUTOPLAY_INTERVAL);
     return () => clearInterval(timer);
-  }, [isPlaying, isInteracting, total, step]);
+  }, [isPlaying, isInteracting, total, step, reducedMotion]);
 
-  // Scroll active thumbnail smoothly into view
+  // Scroll active thumbnail into view
   useEffect(() => {
     if (!thumbnailsRef.current || total <= 1) return;
     const activeThumb = thumbnailsRef.current.children[safeIndex] as HTMLElement | undefined;
     if (activeThumb) {
-      activeThumb.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
+      activeThumb.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'nearest', inline: 'center' });
     }
-  }, [safeIndex, total]);
+  }, [safeIndex, total, reducedMotion]);
 
   const openLightbox = useCallback((index: number) => {
     setActiveIndex(index);
@@ -70,63 +76,46 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
     setLightboxOpen(false);
   }, []);
 
-  // Native <dialog> handles Escape and restores focus
+  // Native <dialog> handles Escape and focus restoration
   useEffect(() => {
     if (lightboxOpen && dialog.current && !dialog.current.open) {
       dialog.current.showModal();
     }
   }, [lightboxOpen]);
 
-  // Keyboard navigation inside lightbox and main view
+  // Keyboard navigation inside lightbox
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (lightboxOpen) {
-        if (event.key === 'ArrowLeft') step(-1);
-        if (event.key === 'ArrowRight') step(1);
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return;
+      if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'ArrowRight') step(1);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [lightboxOpen, step]);
 
-  // Touch handlers for mobile swipe (Right-to-Left and vice versa)
+  // Touch / swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     setIsInteracting(true);
+    if (interactingTimer.current) clearTimeout(interactingTimer.current);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null || touchStartY.current === null) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const diffX = touchStartX.current - touchEndX;
-    const diffY = touchStartY.current - touchEndY;
-
-    // Detect horizontal swipe if delta X is greater than delta Y
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
-      if (diffX > 0) {
-        // Swiped left -> move to next image
-        step(1);
-      } else {
-        // Swiped right -> move to previous image
-        step(-1);
-      }
+    const dx = touchStartX.current - e.changedTouches[0].clientX;
+    const dy = touchStartY.current - e.changedTouches[0].clientY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 35) {
+      step(dx > 0 ? 1 : -1);
     }
-
     touchStartX.current = null;
     touchStartY.current = null;
-
-    // Gracefully resume autoplay after a short pause
-    setTimeout(() => {
-      setIsInteracting(false);
-    }, 2000);
+    interactingTimer.current = setTimeout(() => setIsInteracting(false), 2000);
   };
 
   const scrollThumbnails = (direction: 'left' | 'right') => {
-    if (!thumbnailsRef.current) return;
-    const amount = direction === 'left' ? -220 : 220;
-    thumbnailsRef.current.scrollBy({ left: amount, behavior: 'smooth' });
+    thumbnailsRef.current?.scrollBy({ left: direction === 'left' ? -220 : 220, behavior: 'smooth' });
   };
 
   if (total === 0) return null;
@@ -141,7 +130,7 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Horizontal Track sliding smoothly */}
+        {/* Sliding track */}
         <div
           className={styles.sliderTrack}
           style={{ transform: `translateX(-${safeIndex * 100}%)` }}
@@ -152,67 +141,59 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
               className={styles.slideItem}
               onClick={() => openLightbox(idx)}
               role="button"
-              tabIndex={0}
+              tabIndex={idx === safeIndex ? 0 : -1}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  openLightbox(idx);
-                }
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(idx); }
               }}
               aria-label={`${name} — ${idx + 1}. görseli tam ekran göster`}
             >
               <Image
-                {...imageProps(img.url, 1800)}
+                {...imageProps(img.url)}
                 alt={img.alt || `${name} - fotoğraf ${idx + 1}`}
                 fill
                 priority={idx === 0}
-                loading={idx < 3 ? 'eager' : 'lazy'}
-                sizes="(max-width: 900px) 100vw, 66vw"
+                loading={idx < 2 ? 'eager' : 'lazy'}
+                // Gallery column is ~66vw on desktop, full width on mobile
+                sizes="(max-width: 600px) 100vw, (max-width: 900px) 100vw, (max-width: 1100px) calc(100vw - 420px), calc(100vw - 520px)"
                 className={styles.slideImg}
               />
             </div>
           ))}
         </div>
 
-        {/* Floating Controls Overlay */}
-        <div className={styles.overlayControls} aria-hidden="true">
-          {/* Photo Counter Pill */}
-          <div className={styles.counterBadge}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-              <circle cx="9" cy="9" r="2"/>
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+        {/* Overlay controls */}
+        <div className={styles.overlayControls}>
+          {/* Counter */}
+          <div className={styles.counterBadge} aria-live="polite" aria-atomic="true">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
             </svg>
             <span>{safeIndex + 1} / {total}</span>
           </div>
 
-          {/* Autoplay Play/Pause Toggle & Hint */}
-          {total > 1 && (
+          {/* Play/pause — only shown if more than 1 image and reduced motion is off */}
+          {total > 1 && !reducedMotion && (
             <button
               type="button"
               className={styles.playToggleBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsPlaying((p) => !p);
-              }}
+              onClick={(e) => { e.stopPropagation(); setIsPlaying((p) => !p); }}
               aria-label={isPlaying ? 'Otomatik kaydırmayı duraklat' : 'Otomatik kaydırmayı başlat'}
-              title={isPlaying ? 'Duraklat' : 'Oynat'}
+              aria-pressed={isPlaying}
             >
               {isPlaying && !isInteracting ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="6" y="4" width="4" height="16" rx="1" />
-                  <rect x="14" y="4" width="4" height="16" rx="1" />
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" />
                 </svg>
               ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <polygon points="5 3 19 12 5 21 5 3" />
                 </svg>
               )}
-              <span>{isPlaying && !isInteracting ? 'Otomatik Akış' : 'Duraklatıldı'}</span>
+              <span>{isPlaying && !isInteracting ? 'Otomatik Akış' : 'Oynat'}</span>
             </button>
           )}
 
-          {/* Fullscreen Expand Hint Button */}
+          {/* Expand / fullscreen */}
           <button
             type="button"
             className={styles.expandBtn}
@@ -220,49 +201,41 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
             aria-label="Tam ekran görüntüle"
             title="Tam ekran"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 3 21 3 21 9" />
-              <polyline points="9 21 3 21 3 15" />
-              <line x1="21" y1="3" x2="14" y2="10" />
-              <line x1="3" y1="21" x2="10" y2="14" />
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" />
             </svg>
           </button>
         </div>
 
-        {/* Navigation Arrows (Prev & Next) */}
+        {/* Prev / Next nav arrows */}
         {total > 1 && (
           <>
             <button
               type="button"
               className={`${styles.navBtn} ${styles.prevBtn}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                step(-1);
-              }}
+              onClick={(e) => { e.stopPropagation(); step(-1); }}
               aria-label="Önceki fotoğraf"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
             <button
               type="button"
               className={`${styles.navBtn} ${styles.nextBtn}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                step(1);
-              }}
+              onClick={(e) => { e.stopPropagation(); step(1); }}
               aria-label="Sonraki fotoğraf"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m9 18 6-6-6-6" />
               </svg>
             </button>
           </>
         )}
 
-        {/* Dynamic Progress Bar for Autoplay */}
-        {total > 1 && isPlaying && (
+        {/* Autoplay progress bar */}
+        {total > 1 && isPlaying && !reducedMotion && (
           <div
             key={`progress-${safeIndex}-${isInteracting ? 'paused' : 'running'}`}
             className={`${styles.progressBar} ${isInteracting ? styles.progressPaused : ''}`}
@@ -270,28 +243,16 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
         )}
       </div>
 
-      {/* --- Thumbnails Horizontal Ribbon --- */}
+      {/* --- Thumbnails Strip --- */}
       {total > 1 && (
         <div className={styles.thumbsWrapper}>
           {total > 4 && (
-            <button
-              type="button"
-              className={`${styles.thumbScrollBtn} ${styles.thumbScrollLeft}`}
-              onClick={() => scrollThumbnails('left')}
-              aria-label="Fotoğrafları sola kaydır"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
+            <button type="button" className={`${styles.thumbScrollBtn} ${styles.thumbScrollLeft}`} onClick={() => scrollThumbnails('left')} aria-label="Fotoğrafları sola kaydır">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
             </button>
           )}
 
-          <div
-            ref={thumbnailsRef}
-            className={styles.thumbs}
-            role="group"
-            aria-label={`${name} fotoğraf listesi (${total} fotoğraf)`}
-          >
+          <div ref={thumbnailsRef} className={styles.thumbs} role="group" aria-label={`${name} fotoğraf listesi (${total} fotoğraf)`}>
             {images.map((img, index) => {
               const isActive = index === safeIndex;
               return (
@@ -304,43 +265,34 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
                   aria-pressed={isActive}
                 >
                   <Image
-                    {...imageProps(img.url, 300)}
+                    {...imageProps(img.url)}
                     alt=""
-                    width={100}
-                    height={75}
-                    sizes="100px"
+                    width={96}
+                    height={72}
+                    sizes="96px"
                     style={{ objectFit: 'cover' }}
                   />
-                  <span className={styles.thumbIndex}>{index + 1}</span>
+                  <span className={styles.thumbIndex} aria-hidden="true">{index + 1}</span>
                 </button>
               );
             })}
           </div>
 
           {total > 4 && (
-            <button
-              type="button"
-              className={`${styles.thumbScrollBtn} ${styles.thumbScrollRight}`}
-              onClick={() => scrollThumbnails('right')}
-              aria-label="Fotoğrafları sağa kaydır"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m9 18 6-6-6-6" />
-              </svg>
+            <button type="button" className={`${styles.thumbScrollBtn} ${styles.thumbScrollRight}`} onClick={() => scrollThumbnails('right')} aria-label="Fotoğrafları sağa kaydır">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
             </button>
           )}
         </div>
       )}
 
-      {/* --- Fullscreen Lightbox Modal --- */}
+      {/* --- Fullscreen Lightbox --- */}
       <dialog
         ref={dialog}
         className={styles.lightbox}
         aria-label={`${name} galerisi — tam ekran`}
         onClose={() => setLightboxOpen(false)}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) closeLightbox();
-        }}
+        onClick={(e) => { if (e.target === e.currentTarget) closeLightbox(); }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -351,9 +303,10 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
               className={`${styles.lightboxSlide} ${i === safeIndex ? styles.lightboxSlideActive : ''}`}
             >
               <Image
-                {...imageProps(img.url, 2400)}
+                {...imageProps(img.url)}
                 alt={img.alt || name}
                 fill
+                // Lightbox is full-screen; load highest quality for current + adjacent
                 sizes="100vw"
                 priority={i === safeIndex}
                 style={{ objectFit: 'contain' }}
@@ -362,28 +315,18 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
           ))}
         </div>
 
-        <div className={styles.lightboxCounter}>
+        <div className={styles.lightboxCounter} aria-live="polite" aria-atomic="true">
           {safeIndex + 1} / {total} — {name}
         </div>
 
         {total > 1 && (
           <>
-            <button
-              type="button"
-              className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
-              onClick={() => step(-1)}
-              aria-label="Önceki fotoğraf"
-            >
+            <button type="button" className={`${styles.lightboxNav} ${styles.lightboxPrev}`} onClick={() => step(-1)} aria-label="Önceki fotoğraf">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
-            <button
-              type="button"
-              className={`${styles.lightboxNav} ${styles.lightboxNext}`}
-              onClick={() => step(1)}
-              aria-label="Sonraki fotoğraf"
-            >
+            <button type="button" className={`${styles.lightboxNav} ${styles.lightboxNext}`} onClick={() => step(1)} aria-label="Sonraki fotoğraf">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m9 18 6-6-6-6" />
               </svg>
@@ -391,13 +334,8 @@ export default function RoomGallery({ images, name }: RoomGalleryProps) {
           </>
         )}
 
-        <button
-          type="button"
-          className={styles.lightboxClose}
-          onClick={closeLightbox}
-          aria-label="Kapat"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <button type="button" className={styles.lightboxClose} onClick={closeLightbox} aria-label="Kapat">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>

@@ -81,13 +81,16 @@ export default function HeroCarousel({
       {images.map((src, i) => {
         const isActive = i === active;
         return (
-          <div
+        <div
             key={src + i}
             className={`${styles.slide} ${isActive ? styles.slideActive : ''}`}
+            role="group"
+            aria-roledescription="slayt"
+            aria-label={`${i + 1} / ${images.length}`}
           >
             <Image
-              {...imageProps(src, 2560)}
-              alt="ALDi Mobilya Özel Koleksiyon"
+              {...imageProps(src)}
+              alt={i === 0 ? 'ALDi Mobilya — Özel Koleksiyon' : `ALDi Mobilya Koleksiyon — ${i + 1}. görsel`}
               fill
               priority={i === 0}
               loading={i === 0 ? undefined : 'lazy'}
