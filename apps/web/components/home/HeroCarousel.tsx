@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FocusEvent } from 'react';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import { imageProps } from '@/lib/media';
-import { getDeterministicPreset, getPresetClassName, registerMotionObserver } from '@/lib/motion/motion-controller';
+import { registerMotionObserver } from '@/lib/motion/motion-controller';
 import styles from './HeroCarousel.module.css';
 
 const DEFAULT_INTERVAL_MS = 6500;
@@ -37,6 +38,7 @@ export default function HeroCarousel({
   const [intent, setIntent] = useState<PlaybackIntent>('auto');
   const [focusWithin, setFocusWithin] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
 
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
@@ -55,19 +57,36 @@ export default function HeroCarousel({
     return registerMotionObserver(el);
   }, []);
 
+  const step = useCallback((delta: number) => {
+    setActive((prev) => (prev + delta + images.length) % images.length);
+  }, [images.length]);
+
   useEffect(() => {
     if (!running) return;
     const id = window.setInterval(() => {
-      setActive((prev) => (prev + 1) % images.length);
+      step(1);
     }, intervalMs);
     return () => window.clearInterval(id);
-  }, [running, images.length, intervalMs]);
+  }, [running, intervalMs, step]);
 
   const handleBlur = useCallback((event: FocusEvent<HTMLDivElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
       setFocusWithin(false);
     }
   }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(dx) > 40) {
+      step(dx > 0 ? 1 : -1);
+    }
+    touchStartX.current = null;
+  };
 
   if (images.length === 0) return null;
 
@@ -80,33 +99,50 @@ export default function HeroCarousel({
       aria-label="Tanıtım görselleri"
       onFocus={() => setFocusWithin(true)}
       onBlur={handleBlur}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      {images.map((src, i) => {
-        const isActive = i === active;
-        const motionClass = isActive && !reducedMotion
-          ? getPresetClassName(getDeterministicPreset(i, 'hero'))
-          : '';
-
-        return (
-          <div
-            key={src + i}
-            className={`${styles.slide} ${isActive ? styles.slideActive : ''}`}
-            role="group"
-            aria-roledescription="slayt"
-            aria-label={`${i + 1} / ${images.length}`}
-          >
-            <Image
-              {...imageProps(src)}
-              alt={i === 0 ? 'ALDi Mobilya — Özel Koleksiyon' : `ALDi Mobilya Koleksiyon — ${i + 1}. görsel`}
-              fill
-              priority={i === 0}
-              loading={i === 0 ? undefined : 'lazy'}
-              sizes="100vw"
-              className={`${styles.heroImage} ${motionClass}`}
-            />
-          </div>
-        );
-      })}
+      <AnimatePresence initial={false} mode="sync">
+        <motion.div
+          key={active}
+          className={styles.slide}
+          initial={
+            reducedMotion
+              ? { opacity: 0 }
+              : { opacity: 0, scale: 1.05 }
+          }
+          animate={
+            reducedMotion
+              ? { opacity: 1 }
+              : { opacity: 1, scale: 1 }
+          }
+          exit={
+            reducedMotion
+              ? { opacity: 0 }
+              : { opacity: 0, scale: 0.97 }
+          }
+          transition={
+            reducedMotion
+              ? { duration: 0.3 }
+              : {
+                  opacity: { duration: 1.5, ease: [0.16, 1, 0.3, 1] },
+                  scale: { duration: 2.4, ease: [0.16, 1, 0.3, 1] },
+                }
+          }
+          role="group"
+          aria-roledescription="slayt"
+          aria-label={`${active + 1} / ${images.length}`}
+        >
+          <Image
+            {...imageProps(images[active])}
+            alt={active === 0 ? 'ALDi Mobilya — Lüks Koleksiyon' : `ALDi Mobilya Koleksiyon — ${active + 1}. görsel`}
+            fill
+            priority={active === 0}
+            sizes="100vw"
+            className={styles.heroImage}
+          />
+        </motion.div>
+      </AnimatePresence>
 
       {multiple && (
         <div className={styles.controls}>

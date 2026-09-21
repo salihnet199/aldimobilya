@@ -7,14 +7,7 @@
 .slide {
   position: absolute;
   inset: 0;
-  opacity: 0;
-  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: opacity;
-}
-
-.slideActive {
-  opacity: 1;
-  z-index: 1;
+  will-change: transform, opacity;
 }
 
 .heroImage {
@@ -23,7 +16,6 @@
   object-fit: cover !important;
   object-position: center center !important;
   display: block;
-  will-change: transform;
 }
 
 /* Master-crafted Cinematic Motion (Director's Cut — Velvet Breathing) */

@@ -1,0 +1,496 @@
+/* =============================================================================
+   ALDi Mobilya — Bedroom Showcase (Lüks Yatak Odası Koleksiyonu)
+   Zero-Crop Full-Fidelity Display + Quiet Luxury Motion Physics
+   ============================================================================= */
+
+.section {
+  position: relative;
+  padding: 100px 0 110px;
+  background: #0c0b09;
+  overflow: hidden;
+}
+
+/* Subtle background illumination */
+.ambientGlow {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(184, 134, 60, 0.08) 0%, rgba(12, 11, 9, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 50px;
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #d4af37;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+  color: #f5f0eb;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.titleGold {
+  color: #d4af37;
+  font-style: italic;
+}
+
+.subtitle {
+  font-size: 1.0625rem;
+  color: rgba(245, 240, 235, 0.65);
+  max-width: 680px;
+  margin: 16px auto 0;
+  line-height: 1.65;
+}
+
+/* Main Showcase Stage */
+.stage {
+  position: relative;
+  z-index: 1;
+  background: #141418;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px -10px rgba(184, 134, 60, 0.2);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.65fr 1fr;
+  min-height: 580px;
+}
+
+@media (max-width: 1024px) {
+  .stage {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+}
+
+/* ZERO-CROP Image Viewport */
+.viewport {
+  position: relative;
+  width: 100%;
+  min-height: 480px;
+  background: #070709;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .viewport {
+    min-height: 340px;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* Atmospheric Ambient Layer (Reflects photo colors without cropping main image) */
+.ambientBackdrop {
+  position: absolute;
+  inset: -20px;
+  opacity: 0.32;
+  filter: blur(35px);
+  transform: scale(1.15);
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
+}
+
+/* Crisp Hero Image - 100% Contain (Zero Cropping Guarantee) */
+.heroImageWrapper {
+  position: absolute;
+  inset: 16px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .heroImageWrapper {
+    inset: 8px;
+  }
+}
+
+.containedImage {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  image-rendering: -webkit-optimize-contrast;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Viewport Overlays */
+.zeroCropBadge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(12, 11, 9, 0.72);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #d4af37;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.expandBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: rgba(20, 20, 24, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f5f0eb;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.expandBtn:hover {
+  background: rgba(212, 175, 55, 0.22);
+  border-color: #d4af37;
+  color: #d4af37;
+  transform: translateY(-1px);
+}
+
+/* Navigation Arrows */
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(14, 13, 11, 0.72);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #f5f0eb;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.navBtn:hover {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: #d4af37;
+  color: #d4af37;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.navBtnPrev {
+  left: 18px;
+}
+
+.navBtnNext {
+  right: 18px;
+}
+
+@media (max-width: 768px) {
+  .navBtn {
+    width: 38px;
+    height: 38px;
+  }
+  .navBtnPrev {
+    left: 8px;
+  }
+  .navBtnNext {
+    right: 8px;
+  }
+}
+
+/* Angle Navigation Thumbnails Strip */
+.anglesStrip {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: rgba(12, 11, 9, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  max-width: 90%;
+  overflow-x: auto;
+}
+
+.anglesStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.angleThumb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  background: #141418;
+}
+
+.angleThumbActive {
+  border-color: #d4af37;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+  transform: scale(1.08);
+}
+
+/* Info & Commercial Sidebar */
+.sidebar {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(26, 25, 29, 0.95) 0%, rgba(18, 17, 21, 0.98) 100%);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 30px 24px;
+  }
+}
+
+.modelCategory {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #b8863c;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.modelName {
+  font-size: clamp(1.75rem, 2.5vw, 2.35rem);
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+  color: #f5f0eb;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0 0 16px;
+}
+
+.modelDesc {
+  font-size: 0.9375rem;
+  color: rgba(245, 240, 235, 0.72);
+  line-height: 1.65;
+  margin-bottom: 28px;
+}
+
+/* Specs Grid */
+.specsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 32px;
+  padding: 18px;
+  background: rgba(12, 11, 9, 0.55);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.specItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.specLabel {
+  font-size: 0.75rem;
+  color: rgba(245, 240, 235, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.specValue {
+  font-size: 0.875rem;
+  color: #f5f0eb;
+  font-weight: 500;
+}
+
+/* Model Switcher Tabs */
+.modelSelector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.modelTab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(245, 240, 235, 0.7);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.modelTab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f0eb;
+}
+
+.modelTabActive {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  color: #d4af37;
+  font-weight: 500;
+}
+
+/* Action CTAs */
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: auto;
+}
+
+@media (max-width: 480px) {
+  .actionsRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.detailsBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #d4af37 0%, #b8863c 100%);
+  color: #0c0b09;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 20px rgba(184, 134, 60, 0.25);
+}
+
+.detailsBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(184, 134, 60, 0.35);
+  filter: brightness(1.06);
+}
+
+.whatsappBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f5f0eb;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.whatsappBtn:hover {
+  background: rgba(37, 211, 102, 0.15);
+  border-color: #25d366;
+  color: #25d366;
+  transform: translateY(-2px);
+}
+
+/* High-Res Fullscreen Modal */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(12, 11, 9, 0.95);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modalContent {
+  position: relative;
+  width: 100%;
+  max-width: 1400px;
+  height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalCloseBtn {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #141418;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #f5f0eb;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.modalCloseBtn:hover {
+  background: #d4af37;
+  color: #0c0b09;
+}
