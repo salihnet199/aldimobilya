@@ -116,6 +116,17 @@ export default function BedroomShowcase({ rooms, whatsappNumber }: BedroomShowca
     }
   };
 
+  // Autoplay slideshow so bedroom models animate and move automatically like the hero
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  useEffect(() => {
+    if (!isPlaying || reducedMotion || photos.length <= 1) return;
+    const timer = setInterval(() => {
+      setActivePhotoIdx((prev) => (prev + 1) % photos.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [isPlaying, reducedMotion, photos.length]);
+
   const nextPhoto = () => {
     if (photos.length > 1) {
       setActivePhotoIdx((prev) => (prev + 1) % photos.length);
@@ -178,7 +189,12 @@ export default function BedroomShowcase({ rooms, whatsappNumber }: BedroomShowca
         )}
 
         {/* Master Presentation Stage */}
-        <div ref={stageRef} className={styles.stage}>
+        <div
+          ref={stageRef}
+          className={styles.stage}
+          onMouseEnter={() => setIsPlaying(false)}
+          onMouseLeave={() => setIsPlaying(true)}
+        >
           {/* ZERO-CROP Image Viewport */}
           <div
             className={styles.viewport}
@@ -217,7 +233,7 @@ export default function BedroomShowcase({ rooms, whatsappNumber }: BedroomShowca
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.35 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.0, ease: [0.25, 1, 0.5, 1] }}
                 aria-hidden="true"
               >
                 {activePhoto && (
@@ -238,12 +254,12 @@ export default function BedroomShowcase({ rooms, whatsappNumber }: BedroomShowca
                 <motion.div
                   key={`hero-${activePhoto}`}
                   style={{ width: '100%', height: '100%', position: 'relative' }}
-                  initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
-                  animate={reducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-                  exit={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 1.02 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   transition={{
-                    opacity: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
-                    scale: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
+                    duration: reducedMotion ? 0.3 : 1.0,
+                    ease: [0.25, 1, 0.5, 1],
                   }}
                 >
                   {activePhoto && (

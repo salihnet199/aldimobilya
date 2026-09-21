@@ -7,13 +7,43 @@
 .slide {
   position: absolute;
   inset: 0;
-  will-change: transform, opacity;
+  will-change: opacity;
+  background: #08080a;
+}
+
+/* Atmospheric Ambient Layer to fill background with organic room lighting */
+.ambientBackdrop {
+  position: absolute;
+  inset: -20px;
+  opacity: 0.38;
+  filter: blur(40px);
+  transform: scale(1.15);
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.ambientImage {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block;
+}
+
+/* Zero-Crop 100% Full Viewport Foreground */
+.heroImageWrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .heroImage {
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
   object-position: center center !important;
   display: block;
 }

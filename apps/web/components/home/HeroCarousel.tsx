@@ -106,41 +106,39 @@ export default function HeroCarousel({
         <motion.div
           key={active}
           className={styles.slide}
-          initial={
-            reducedMotion
-              ? { opacity: 0 }
-              : { opacity: 0, scale: 1.05 }
-          }
-          animate={
-            reducedMotion
-              ? { opacity: 1 }
-              : { opacity: 1, scale: 1 }
-          }
-          exit={
-            reducedMotion
-              ? { opacity: 0 }
-              : { opacity: 0, scale: 0.97 }
-          }
-          transition={
-            reducedMotion
-              ? { duration: 0.3 }
-              : {
-                  opacity: { duration: 1.5, ease: [0.16, 1, 0.3, 1] },
-                  scale: { duration: 2.4, ease: [0.16, 1, 0.3, 1] },
-                }
-          }
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{
+            duration: reducedMotion ? 0.3 : 1.2,
+            ease: [0.25, 1, 0.5, 1],
+          }}
           role="group"
           aria-roledescription="slayt"
           aria-label={`${active + 1} / ${images.length}`}
         >
-          <Image
-            {...imageProps(images[active])}
-            alt={active === 0 ? 'ALDi Mobilya — Lüks Koleksiyon' : `ALDi Mobilya Koleksiyon — ${active + 1}. görsel`}
-            fill
-            priority={active === 0}
-            sizes="100vw"
-            className={styles.heroImage}
-          />
+          {/* Ambient Backdrop Layer to illuminate surroundings organically */}
+          <div className={styles.ambientBackdrop} aria-hidden="true">
+            <Image
+              {...imageProps(images[active])}
+              alt=""
+              fill
+              sizes="100vw"
+              className={styles.ambientImage}
+            />
+          </div>
+
+          {/* Zero-Crop Contained Foreground Image (100% full view) */}
+          <div className={styles.heroImageWrapper}>
+            <Image
+              {...imageProps(images[active])}
+              alt={active === 0 ? 'ALDi Mobilya — Lüks Koleksiyon' : `ALDi Mobilya Koleksiyon — ${active + 1}. görsel`}
+              fill
+              priority={active === 0}
+              sizes="100vw"
+              className={styles.heroImage}
+            />
+          </div>
         </motion.div>
       </AnimatePresence>
 
